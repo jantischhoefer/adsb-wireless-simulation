@@ -1,3 +1,5 @@
 numpy
 geopy
 great_circle_calculator
+matplotlib
+matplotlib
