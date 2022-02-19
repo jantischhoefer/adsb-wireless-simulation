@@ -1,11 +1,15 @@
+import uuid
 import geopy.distance
 import great_circle_calculator.great_circle_calculator as gcc
 
 class CommSat:
-    position = (0,0) # lon-lat
-    height = 400000 # 400km orbit
-    speed = 97200000 # m/s ~27.000km/h
-    waypoints = [] # lon-lat
+    # pos: lon-lat, height: [m] 400km orbit, speed: [m/s] ~27.000km/hm waypoints: lon-lat
+    def __init__(self, position = (0,0), height = 400000, speed = 97200000, waypoints = []):
+        self.id = 'sat-' + str(uuid.uuid1())
+        self.position = position
+        self.height = height
+        self.waypoints = waypoints
+        self.speed = speed
 
     # updates the position after x seconds
     def updatePos(self, timestep):
