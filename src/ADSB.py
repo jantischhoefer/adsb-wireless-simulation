@@ -84,17 +84,6 @@ class ADSB_coder:
         self.vortexCategory = vortexCategory
         self.downlinkFormat = downlinkFormat
 
-    def decode(self, hexStr28):
-        return ""
-
-    # encode message prefix containing downlink format and transponder capability
-    def encodeADSBprefix(self):
-        dFcTbin = bin((self.downlinkFormat<<3) | self.transponderCapability)[2:]
-        ICAObin = bin(int(self.ICAOaddress, 16))[2:]
-        while len(ICAObin) < 24:
-            ICAObin = "0" + ICAObin
-        return hex(int(dFcTbin + ICAObin, 2)).upper()
-
     def calculateCRC(self, msg):
         generator = "1111111111111010000001001"
         binMSG=bin(int(msg, 16))[2:]
@@ -110,6 +99,19 @@ class ADSB_coder:
                 binMSG = binMSG[0:i] + xor + binMSG[i+25:]
         remainder = binMSG[-24:]
         return hex(int(remainder, 2))[2:].upper().zfill(6).upper()
+
+    def decode(self, msgHex):
+        # first, check crc
+        if self.calculateCRC(msgHex)
+        return ""
+
+    # encode message prefix containing downlink format and transponder capability
+    def encodeADSBprefix(self):
+        dFcTbin = bin((self.downlinkFormat<<3) | self.transponderCapability)[2:]
+        ICAObin = bin(int(self.ICAOaddress, 16))[2:]
+        while len(ICAObin) < 24:
+            ICAObin = "0" + ICAObin
+        return hex(int(dFcTbin + ICAObin, 2)).upper()
 
     def encodePosition(self, surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude):
         ADSB_positional_msg.encodeMessage(surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude)
