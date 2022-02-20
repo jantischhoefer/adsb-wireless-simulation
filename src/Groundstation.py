@@ -1,7 +1,8 @@
 class Groundstation:
 
-    def __init__(self):
-        self.identification = None
+    # id should be 'HAN' or 'SGN'
+    def __init__(self, id):
+        self.id = id
         self.position = (0, 0)
         self.recRange = 0
 
@@ -19,4 +20,3 @@ class Groundstation:
         planePosition = recData[0]
 
         return planePosition
-

@@ -3,15 +3,14 @@ import great_circle_calculator.great_circle_calculator as gcc
 
 import Transmission
 
-
 class Plane:
-
-    def __init__(self):
-        self.identification = None
-        self.position = (105.804817, 21.028511)  # lon-lat, Hanoi
-        self.height = 0
-        self.speed = 1800  # m/s
-        self.waypoints = [(106.660172, 10.762622)]  # lon-lat, Saigon
+    # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
+    def __init__(self, id, position = (105.808817,21.028511), height = 0, speed = 1800, waypoints = [(106.660172, 10.762622)]):
+        self.id = id
+        self.position = position
+        self.height = height
+        self.speed = speed
+        self.waypoints = waypoints
 
     # updates the position after x seconds
     def updatePos(self, timestep):
