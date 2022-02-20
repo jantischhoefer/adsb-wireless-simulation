@@ -4,9 +4,10 @@ import great_circle_calculator.great_circle_calculator as gcc
 
 import Transmission
 
+
 class CommSat:
     # pos: lon-lat, height: [m] 400km orbit, speed: [m/s] ~27.000km/hm waypoints: lon-lat
-    def __init__(self, position = (0,0), height = 400000, speed = 97200000, waypoints = []):
+    def __init__(self, position=(0, 0), height=400000, speed=97200000, waypoints=[]):
         self.id = 'sat-' + str(uuid.uuid1())
         self.data = None
         self.received = False
@@ -14,7 +15,7 @@ class CommSat:
         self.height = height
         self.waypoints = waypoints
         self.speed = speed
-        self.range = 0
+        self.recRange = 0
 
     # updates the position after x seconds
     def updatePos(self, timestep):
@@ -39,7 +40,7 @@ class CommSat:
 
         # Check Range
         if self.inRange(groundstation) and self.received:
-            transmission.append(Transmission.Transmission(self.data, self.identification, groundstation.identification))
+            transmission.append(Transmission.Transmission(self.data, self.id, groundstation.id))
             self.received = False
 
         return transmission
@@ -47,7 +48,7 @@ class CommSat:
     def receive(self, transmission):
 
         for element in transmission:
-            if element.dest == self.identification:
+            if element.dest == self.id:
                 originalData = element.data
 
                 # Perform wireless shit!!!!!!!!!

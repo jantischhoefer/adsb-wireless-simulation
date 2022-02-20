@@ -14,8 +14,8 @@ class Simulation:
         self.timeStep = timeStep  # Seconds?
 
     def run(self):
-        plane = Plane.Plane()
-        groundstation = Groundstation.Groundstation()
+        plane = Plane.Plane("Plane_ID")
+        groundstation = Groundstation.Groundstation("Groundstation_ID")
         commSat = CommSat.CommSat()
 
         while not plane.atDestination():

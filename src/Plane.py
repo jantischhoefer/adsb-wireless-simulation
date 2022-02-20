@@ -3,9 +3,10 @@ import great_circle_calculator.great_circle_calculator as gcc
 
 import Transmission
 
+
 class Plane:
     # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
-    def __init__(self, id, position = (105.808817,21.028511), height = 0, speed = 1800, waypoints = [(106.660172, 10.762622)]):
+    def __init__(self, id, position=(105.808817, 21.028511), height=0, speed=1800, waypoints=[(106.660172, 10.762622)]):
         self.id = id
         self.position = position
         self.height = height
@@ -37,10 +38,10 @@ class Plane:
 
         # Check Range
         if self.inRange(groundstation):
-            transmission.append(Transmission.Transmission(data, self.identification, groundstation.identification))
+            transmission.append(Transmission.Transmission(data, self.id, groundstation.id))
 
         if self.inRange(commSat):
-            transmission.append(Transmission.Transmission(data, self.identification, commSat.identification))
+            transmission.append(Transmission.Transmission(data, self.id, commSat.id))
 
         return transmission
 

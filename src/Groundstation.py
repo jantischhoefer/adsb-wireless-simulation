@@ -9,7 +9,7 @@ class Groundstation:
     def receive(self, transmission):
         recData = []
         for element in transmission:
-            if element.dest == self.identification:
+            if element.dest == self.id:
                 originalData = element.data
 
                 # Perform wireless shit!!!!!!!!!

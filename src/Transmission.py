@@ -7,6 +7,7 @@ from pyphysim.util.misc import randn_c
 
 import utils
 
+
 class Transmission:
     def __init__(self, data, src, dest, mod_type, snr) -> None:
         # modulated data (according to protocol) that is sent from src to dest
@@ -22,9 +23,10 @@ class Transmission:
 
     # modulate the encoded self.data with self.mod_type
     def modulate(self) -> None:
-        self.data = self.mod_type.modulate(self.data)    
+        self.data = self.mod_type.modulate(self.data)
 
-    # add noise to self.data to simulate a transmission
+        # add noise to self.data to simulate a transmission
+
     def noise(self) -> None:
         snr_linear = dB2Linear(self.snr)
         noise_power = 1 / snr_linear
@@ -43,13 +45,14 @@ class Transmission:
     def getData(self) -> str:
         return self.data
 
-if __name__ == '__main__':
-    sample_data = '10a45691824da534bc90ff2a3cde'
-    d = np.array(utils.hex_string_to_bit_array(sample_data))
-    t = Transmission(d, 'a360', 's-32', BPSK(), 10)
-    t.transmit()
-    print(sample_data)
-    print(utils.bit_array_to_hex_string(t.getData()))
+
+# if __name__ == '__main__':
+#    sample_data = '10a45691824da534bc90ff2a3cde'
+#    d = np.array(utils.hex_string_to_bit_array(sample_data))
+#    t = Transmission(d, 'a360', 's-32', BPSK(), 10)
+#    t.transmit()
+#    print(sample_data)
+#    print(utils.bit_array_to_hex_string(t.getData()))
 
 # jeder Teilnehmer hat ID
 #   - Flugzeug hat Flugnummer
