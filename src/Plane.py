@@ -2,10 +2,14 @@ import geopy.distance
 import great_circle_calculator.great_circle_calculator as gcc
 
 class Plane:
-    position = (0,0) # lon-lat
-    height = 0
-    speed = 1800 # m/s
-    waypoints = [] # lon-lat
+    # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
+    def __init__(self, id, position = (0,0), height = 0, speed = 1800, waypoints = []):
+        self.id = id
+        self.position = position
+        self.height = height
+        self.speed = speed
+        self.waypoints = waypoints
+    
 
     # updates the position after x seconds
     def updatePos(self, timestep):
