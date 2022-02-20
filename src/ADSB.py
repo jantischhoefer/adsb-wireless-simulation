@@ -9,8 +9,9 @@ class ADSB_positional_msg:
     cprFormat = 0
     latitude = 0
     longitude = 0
+    typeCode=20
 
-    def decodeMessage(self):
+    def decodeMessage(self, msg):
         return self
 
     def encodeMessage(self, surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude):
@@ -30,12 +31,19 @@ class ADSB_positional_msg:
 
 # can encode, decode and print the message part of an ADSB identification transmission
 class ADSB_identification_msg:
-    ICAO = ""
     vortexCategory = 0
     callSign = ""
     typeCode = 4
 
-    def decodeMessage(self):
+    def decodeMessage(self, msg):
+        msgBin = bin(int(msg, 16))
+        self.typeCode = int(msgBin[0:5], 2)
+        self.vortexCategory = int(msgBin[5:8], 2)
+
+        # callSign
+        for i in range(8):
+            self.callSign += utils.adsb_int_to_char(int(msgBin[8 + i*6:8+i*6+6], 2))
+
         return self
 
     def encodeMessage(self, vortexCategory, callSign):
@@ -63,7 +71,6 @@ class ADSB_identification_msg:
 
     def printContents(self):
         dataStr = ""
-        dataStr += "ICAO: " + str(self.ICAO) + "\n"
         dataStr += "vortexCategory: " + str(self.vortexCategory) + "\n"
         dataStr += "callSign: " + str(self.callSign) + "\n"
         print(dataStr)
@@ -71,10 +78,10 @@ class ADSB_identification_msg:
 class ADSB_coder:
 
     # when ADSB-coder is used in a plane, transpondercapability and ICAO address can be set hee
-    transponderCapability = 6
+    transponderCapability = 5
     ICAOaddress = ""
-    callSign = "YOMAMA"
-    vortexCategory = 3
+    callSign = ""
+    vortexCategory = 0
     downlinkFormat = 17 # default for civil aircraft
 
     def initForPlane(self, transponderCapability, ICAOaddress, callSign, vortexCategory, downlinkFormat):
@@ -102,8 +109,31 @@ class ADSB_coder:
 
     def decode(self, msgHex):
         # first, check crc
-        if self.calculateCRC(msgHex)
-        return ""
+        if self.calculateCRC(msgHex[:-6]) != msgHex[-6:]:
+            print("Checksum of received ADS-B message does not check out. Aborting")
+            return
+
+        msgBin = bin(int(msgHex, 16))[2:]
+        downlinkFormat = int(msgBin[0:5], 2)
+        transponderCapability = int(msgBin[5:8], 2)
+        ICAOaddress = hex(int(msgBin[8:32],2))[2:].upper()
+        typeCode = int(msgBin[32:37], 2)
+        if typeCode >= 1 and typeCode <=4:
+            # identification message
+            temp = ADSB_identification_msg()
+            temp.decodeMessage(msgHex[8:22])
+            outStr = "Identification-message received.\n"
+            outStr += "DL-Format: " + str(downlinkFormat) + "\n"
+            outStr += "Transponder Capability: " + str(transponderCapability) + "\n"
+            outStr += "ICAO address: " + str(ICAOaddress) + "\n"
+            outStr += "Type Code: " + str(typeCode)
+            print(outStr)
+            temp.printContents()
+            return temp
+        elif (typeCode >= 20 and typeCode <= 22):
+            temp = ADSB_positional_msg()
+            temp.decodeMessage(msgHex[8:22])
+            return temp
 
     # encode message prefix containing downlink format and transponder capability
     def encodeADSBprefix(self):
@@ -122,3 +152,10 @@ class ADSB_coder:
         msgPart = identMSG.encodeMessage(self.vortexCategory, self.callSign)[2:]
         crc = self.calculateCRC(prefix + msgPart)
         return (prefix + msgPart + crc).upper()
+
+
+#temp = ADSB_coder()
+#temp.initForPlane(5, "FFF321", "YOMAMA", 0, 17)
+#encodedIdent = temp.encodeIdentification()
+#print(encodedIdent)
+#temp.decode(encodedIdent)
