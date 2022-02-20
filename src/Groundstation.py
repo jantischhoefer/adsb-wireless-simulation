@@ -1,10 +1,10 @@
 class Groundstation:
 
     # id should be 'HAN' or 'SGN'
-    def __init__(self, id):
+    def __init__(self, id, position):
         self.id = id
-        self.position = (0, 0)
-        self.recRange = 0
+        self.position = position
+        self.recRange = 370000  # 370km
 
     def receive(self, transmission):
         recData = []
@@ -14,9 +14,17 @@ class Groundstation:
 
                 # Perform wireless shit!!!!!!!!!
 
+                # TODO David
+                # data = self.decodeADSBhex()
+
                 recData.append(originalData)
 
         # Process multiple positions received
-        planePosition = recData[0]
+        if len(recData) > 0:
+            planePosition = recData[0]
+        else:
+            planePosition = (0,0)
+
+        print("Groundstation received:", planePosition)
 
         return planePosition
