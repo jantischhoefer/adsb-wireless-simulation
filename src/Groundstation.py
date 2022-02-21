@@ -3,8 +3,9 @@ import ADSB
 class Groundstation:
 
     # id should be 'HAN' or 'SGN'
-    def __init__(self, id, position):
+    def __init__(self, id, position, name):
         self.id = id
+        self.name = name
         self.adsb_coder = ADSB.ADSB_coder()
         self.position = position
         self.recRange = 370000  # 370km
@@ -25,4 +26,4 @@ class Groundstation:
                 msg = self.adsb_coder.decode(originalData, True)
                 if(isinstance(msg, ADSB.ADSB_positional_msg)):
                     if(msg.latLonDecoded == True):
-                        self.receivedPositions.append((msg.decodedLon, msg.decodedLat))
+                        self.receivedPositions.append((msg.decodedLon, msg.decodedLat, msg.ICAOaddress))
