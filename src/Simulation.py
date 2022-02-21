@@ -42,7 +42,7 @@ class Simulation:
             self.recFlightpathSaigon.append(groundstation[1].receive(transmission))
 
     def plot(self):
-        img = plt.imread("img/map.jpg")
+        img = plt.imread("img/map.JPG")
         fig, ax = plt.subplots()
         ax.imshow(img, extent=[99.4, 116.5, 9.4, 23.2])
         # Add Comm Sat to plot
