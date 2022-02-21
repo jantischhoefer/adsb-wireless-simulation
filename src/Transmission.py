@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from numpy.random import standard_normal
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import xlabel, ylabel, title, grid, show
 
@@ -46,17 +47,17 @@ class Transmission:
         return self.data
 
     def getModulator(self, mod_type):
-        if mod_type == 'bpsk': return BPSK(self.freq, self.data, self.snr)
+        if mod_type == 'bpsk': return BpskAwgnRayleighModulator(self.freq, self.data, self.snr)
         else: return None
 
 
-class BPSK:
+class BpskAwgnRayleighModulator:
     def __init__(self, freq, signal, snr) -> None:
         self.freq = freq
         self.signal = signal
         self.snr = snr
-        self.t = np.arange(0, 3/freq, 3/(freq*48))
-        self.l = np.arange(0, 3*3/freq, 3/(freq*48))
+        self.t = np.arange(0, 3/freq, 3/(freq*96))
+        self.l = np.arange(0, 3*3/freq, 3/(freq*96))
         self.x1 = [np.sin(2*np.pi*freq*ts) for ts in self.t]
         self.x2 = [-np.sin(2*np.pi*freq*ts) for ts in self.t]
 
@@ -69,19 +70,8 @@ class BPSK:
                 bpsk.extend(self.x2)
         return np.array(list(bpsk), dtype=float)
 
-    def noise(self, signal):
-        # channel impulse response - maybe design new channel!
-        h = [1,0,0.8,0,0.6,0,0,0.4]
-        sig_avg_watts = np.mean(signal**2)
-        sig_avg_db = 10 * np.log10(sig_avg_watts)
-        noise_avg_db = sig_avg_db - self.snr
-        noise_avg_watts = 10 ** (noise_avg_db / 10)
-        mean_noise = 0
-        n = np.random.normal(mean_noise, np.sqrt(noise_avg_watts), len(signal) + len(h) - 1)
-        return np.convolve(signal, h) + n
-
     def awgn(self, signal, L=1):
-        gamma = 10 ** (self.snr/10)
+        gamma = 10**(self.snr/10)
 
         if signal.ndim==1:
             P = L*sum(abs(signal)**2)/len(signal)
@@ -90,49 +80,35 @@ class BPSK:
         
         N0 = P / gamma # noise spectral density
         if np.isrealobj(signal):
-            n = np.sqrt(N0/2)*np.random.standard_normal(signal.shape)
+            n = np.sqrt(N0/2)*standard_normal(signal.shape)
         else:
-            n = np.sqrt(N0/2)*(np.random.standard_normal(signal.shape)+1j*np.random.standard_normal(signal.shape))
+            n = np.sqrt(N0/2)*(standard_normal(signal.shape)+1j*standard_normal(signal.shape))
         return signal + n
 
-    def generate_square_matrix(self, arr_data, filter_size, isComplex):
-        highest_value_index = arr_data.argmax()
-        sqMat = np.mat(np.zeros(shape=(filter_size,filter_size)))
-        if (isComplex):
-            sqMat = sqMat.astype(complex)
-        for i in range(filter_size):
-            for j in range(filter_size):
-                currentIndex = j + highest_value_index - i
-                if ((currentIndex < 0) or (currentIndex >= len(arr_data))):
-                    sqMat[j,i] = 0
-                else:
-                    sqMat[j,i] = arr_data[currentIndex]
-        return sqMat
-        
-
-    def MMSE_equalizer(self, x, y, filter_size):
-        ryy = np.correlate(y, y, 'full')
-        rxy = np.correlate(x, y, 'full')
-
-        Ryy = self.generate_square_matrix(ryy, filter_size, True)
-        Rxy = np.mat(np.zeros(shape=(filter_size, 1)))
-
-        offset = (len(rxy)-filter_size)>>1
-        for i in range(filter_size):
-            Rxy[i, 0] = rxy[i + offset]
-        MMSE_C_VEC = np.asarray(np.linalg.inv(Ryy)* Rxy).flatten()
-        return MMSE_C_VEC
-
-    def reduce_to_filter_length(arr, filter_length):
-        left = filter_length>>1
-        return arr[left:left+filter_length]
+    def rayleigh(self, N):
+        # 1 tap complex gaussian filter
+        h = 1/np.sqrt(2)*(standard_normal(N)+1j*standard_normal(N))
+        return abs(h)
 
     def receive(self, signal):
-        xp = np.random.randint(0, 10, len(signal))
-        yp = self.noise(xp)
-        cvec = self.MMSE_equalizer(xp, yp)
-        z = np.convolve(yp, cvec)
-        z = self.reduce_to_filter_length(z, len(xp))
+        h_abs = self.rayleigh(len(signal)) # Rayleigh flat fading samples
+        hs = h_abs * signal # fading effect on modulated symbols
+        return self.awgn(hs)
+
+    def demodulate(self, signal):
+        corr1 = 0
+        corr2 = 0
+        received = []
+        for n in range(0, len(self.signal)):
+            for i in range(0,96):
+                corr1 += self.x1[i]*signal[96*n + i]
+                corr2 += self.x2[i]*signal[96*n + i]
+            if corr1 > corr2:
+                received.append(1)
+            else: received.append(0)
+            corr1 = 0
+            corr2 = 0
+        return received
 
     def plot(self, signal, title, x_lbl, y_lbl):
         plt.title(title)
@@ -146,16 +122,30 @@ class BPSK:
 if __name__ == '__main__':
     sample_data = '10a45691824da534bc90ff2a3cde'
     d = np.array(utils.hex_string_to_bit_array(sample_data))
-    t = Transmission(d, 'a360', 's-32', 1616000000, 'bpsk', 10)
+    t = Transmission(d, 'a360', 's-32', 1616000000, 'bpsk', 5)
     mod_data = t.mod.modulate()
-    noisy = t.mod.noise(mod_data)
-    nawgn = t.mod.awgn(mod_data)
+    rayleighAwgn = t.mod.receive(mod_data)
+    demod = t.mod.demodulate(rayleighAwgn)
     t.mod.plot(mod_data, 'mod', 'v', 't')
-    t.mod.plot(noisy, 'noisy signal', 'v', 't')
-    t.mod.plot(nawgn, 'awgn', 'v', 't')
+    t.mod.plot(rayleighAwgn, 'noise', 'v', 't')
+    print(sample_data)
+    print("Demod len: "+ str(len(demod)))
+    print(utils.bit_array_to_hex_string(demod))
     #print(sample_data)
     #print(utils.bit_array_to_hex_string(t.getData()))
 #"""
+
+"""
+print("len(t): " + str(len(t.mod.t)))
+    print("len(l): " + str(len(t.mod.l)))
+
+    print("bits:")
+    print(d)
+    print("len(bits): " + str(len(d)))
+    print("mod:")
+    print(mod_data)
+    print("len(mod): " + str(len(mod_data)))
+"""
 
 # jeder Teilnehmer hat ID
 #   - Flugzeug hat Flugnummer
