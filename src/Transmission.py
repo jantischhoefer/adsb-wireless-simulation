@@ -14,7 +14,7 @@ class Transmission:
         self.mod = self._getChannel(channel_type) # modulator
 
     # modulate, channel, demodulate in one function
-    def transmit(self) -> str:
+    def transmit(self):
         return utils.bit_array_to_hex_string(self.mod.demodulate(self.mod.simChannel(self.mod.modulate())))
 
     def getData(self) -> str:
@@ -54,7 +54,7 @@ class BPSK_AWGN_Rayleigh_Channel:
     def simChannel(self, signal):
         h_abs = rayleigh(len(signal)) # Rayleigh flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
-        return awgn(self.SNRdB, hs) # return signal with added awg noise
+        return awgn(self.SNRdB, hs, self.sample_rate) # return signal with added awg noise
 
     def demodulate(self, signal):
         corr1 = 0
@@ -107,10 +107,10 @@ if __name__ == '__main__':
     #mod_data = t.mod.modulate()
     #rayleighAwgn = t.mod.channel(mod_data)
     #demod = t.mod.demodulate(rayleighAwgn)
-    transmitted = t.transmit()
+    t.transmit()
     print(sample_data)
-    print("Demod len: "+ str(len(transmitted)))
-    print(transmitted)
+    print("Demod len: "+ str(len(t.getData())))
+    print(t.getData())
     #print(sample_data)
     #print(utils.bit_array_to_hex_string(t.getData()))
 """
