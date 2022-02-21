@@ -9,29 +9,40 @@ import Plane
 class Simulation:
 
     def __init__(self, timeStep):
-        self.realFlightpath = []
+        self.realFlightpaths = []
         self.satPath = []
         self.timeStep = timeStep  # Seconds?
         self.groundstations = []
+        self.planes = []
 
     def run(self):
-        plane = Plane.Plane("Plane_ID")
+
         hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511), "Hanoi")
         saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC")
         self.groundstations = [hanoiAirport, saigonAirport]
+
+        plane1 = Plane.Plane("Plane_ID")
+        plane2 = Plane.Plane("Plane_ID_2", waypoints=[(108.660172, 17.762622), (106.660172, 10.762622)])
+        self.planes = [plane1, plane2]
         commSat = CommSat.CommSat()
 
-        while not plane.atDestination():
+        allPlanesArrived = False
+
+        while not allPlanesArrived:
             # Clear transmission
             transmission = []
 
-            # Update the position of plane
-            currentPos = plane.updatePos(self.timeStep)
-            self.realFlightpath.append(currentPos)
-
-            # Transmission
-            transmission = plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
-            transmission += plane.transmitIdentification(self.groundstations, commSat)
+            # Update the position of planes
+            allPlanesArrived = True
+            for plane in self.planes:
+                newPos = plane.updatePos(self.timeStep)
+                self.realFlightpaths.append((newPos[0], newPos[1], plane.ICAO))
+                # Transmission
+                transmission += plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
+                transmission += plane.transmitIdentification(self.groundstations, commSat)
+                # check if all planes arrived
+                if not plane.atDestination():
+                    allPlanesArrived = False
 
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
 
@@ -53,10 +64,21 @@ class Simulation:
         rangeSaigon = plt.Circle((106.660172, 10.762622), 3.4, color='g', alpha=0.3)
         ax.add_patch(rangeHanoi)
         ax.add_patch(rangeSaigon)
-        # Add real flight path to plot
-        # ax.scatter(*zip(*self.realFlightpath), s=1.0, label='Real Flightpath')
+        # Add real flight paths to plot
+        lons, lats, icaos = zip(*self.realFlightpaths)
+        icaoset = set(icaos)
+        for icao in icaoset:
+            lonsnew = ()
+            latsnew = ()
+            for element in self.realFlightpaths:
+                if element[2] == icao:
+                    lonsnew += (element[0],)
+                    latsnew += (element[1],)
+            label = "Real Flightpath of " + icao
+            ax.scatter(lonsnew, latsnew, s=1.0, c="#"+icao, label=label)
         # Add received flight paths to plot
         # first identify number of planes
+
 
         for gs in self.groundstations:
             lons, lats, icaos = zip(*gs.receivedPositions)
@@ -68,7 +90,7 @@ class Simulation:
                     if(element[2] == icao):
                         lonsnew += (element[0],)
                         latsnew += (element[1],)
-                label = "Received Flightpaths " + gs.name
+                label = "Received Flightpaths of " + icao + " in " + gs.name
                 color = int(icao, 16) + int(gs.name.lower(), 36)
                 ax.scatter(lonsnew, latsnew, s=1.0, marker=',', c="#" + hex(color)[2:8], label=label)
 

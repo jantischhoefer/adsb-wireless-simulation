@@ -25,5 +25,6 @@ class Groundstation:
                 # to get coordinates from positional message, use msg.decodedLat and msg.decodedLon ONLY if msg.latLonDecoded == True
                 msg = self.adsb_coder.decode(transmittedData, True)
                 if(isinstance(msg, ADSB.ADSB_positional_msg)):
+                    #print(self.name, "received")
                     if(msg.latLonDecoded == True):
                         self.receivedPositions.append((msg.decodedLon, msg.decodedLat, msg.ICAOaddress))
