@@ -16,6 +16,8 @@ class ADSB_positional_msg:
     cprFormat = 0
     latCPR = 0
     lonCPR = 0
+    decodedLat = 0
+    decodedLon = 0
 
     def __init__(self, downlinkFormat, transponderCapability, ICAOaddress):
         self.downlinkFormat = downlinkFormat
@@ -74,7 +76,7 @@ class ADSB_positional_msg:
         return self
 
     # determine the real position of plane with given ICAO based on old messages
-    def determineTruePosition(self, ICAOaddress, messages):
+    def determineTruePosition(self, ICAOaddress, messages, noPrint = False):
         # first, determine if latest message was even or odd
         latCPReven = 0
         latCPRodd = 0
@@ -105,7 +107,8 @@ class ADSB_positional_msg:
                 messageFound = True
                 break
         if(messageFound == False):
-            print ("Not enough data available to determine accurate position.")
+            if (noPrint == False):
+                print ("Not enough data available to determine accurate position.")
             return
 
         # calculate actual lat and lon
@@ -118,7 +121,8 @@ class ADSB_positional_msg:
         if (latEven >= 270): latEven = latEven - 360
         if (latOdd >= 270): latOdd = latOdd - 360
         if (self.calculateNL(latEven) != self.calculateNL(latOdd)):
-            print("Messages not from same longitude zone; Position calculation not possible")
+            if (noPrint == False):
+                print("Messages not from same longitude zone; Position calculation not possible")
             return
 
         latitude = 0
@@ -147,7 +151,10 @@ class ADSB_positional_msg:
         if longitude >= 180:
             longitude = longitude - 360
 
-        print("Decoded Longitude: ", longitude, "\nDecoded Latitude: ", latitude)
+        self.decodedLat = latitude
+        self.decodedLon = longitude
+        if (noPrint == False):
+            print("Decoded Longitude: ", longitude, "\nDecoded Latitude: ", latitude)
 
     def encodeMessage(self, surveillanceStatus, singleAntennaFlag, altitude, latitude, longitude, time, typeCode, cprFormat):
         self.surveillanceStatus = surveillanceStatus
@@ -185,9 +192,6 @@ class ADSB_positional_msg:
             altitudeBits = altitudeBits[0:7] + "1" + altitudeBits[7:]
 
         # encode latitude and longitude
-        latCPRbits = "10010000110101110"
-        lonCPRbits = "01100010000010010"
-
         # for latitude, globe is divided in 60 equally sized zones, each zone divided in 2^17 bins and only the bins are transmitted
         dLat = 360/(60 - cprFormat)
         latCPR = math.floor(latitude%dLat * (1.00/dLat) * pow(2, 17)+0.5)
@@ -347,7 +351,7 @@ class ADSB_coder:
                 print("Position-message received.")
                 posMSG.printMessage()
             self.decPosMSGS.append(posMSG)
-            posMSG.determineTruePosition(ICAOaddress, self.decPosMSGS)
+            posMSG.determineTruePosition(ICAOaddress, self.decPosMSGS, noPrint)
             return posMSG
 
     # encode message prefix containing downlink format and transponder capability
@@ -383,7 +387,7 @@ class ADSB_coder:
 
 #temp = ADSB_coder()
 #temp.decode("8D40621D58C386435CC412692AD6", True)
-#temp.decode("8D40621D58C382D690C8AC2863A7", True)
+#temp.decode("8D40621D58C382D690C8AC2863A7")
 #res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
 #res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
 #temp.decode(res1, True)
