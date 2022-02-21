@@ -6,13 +6,17 @@ class CommSat:
     def __init__(self):
         # self.id = 'sat-' + str(uuid.uuid1())
         self.id = "Sat_ID"
-        self.data = None
+        self.data = []
 
-    def transmit(self, groundstation):
+    def transmit(self, groundstations):
 
-        transmission = Transmission.Transmission(self.data, self.id, groundstation.id, None, None)
+        transmission = []
+        for element in self.data:
+            for gs in groundstations:
+                transmission.append(Transmission.Transmission(element.data, self.id, gs.id, None, None))
+            self.data.remove(element)
 
-        print("ComSat transmit:", transmission)
+        #print("ComSat transmit:", transmission)
 
         return transmission
 
@@ -20,10 +24,8 @@ class CommSat:
 
         for element in transmission:
             if element.dest == self.id:
-                originalData = element.data
-                print("ComSat received data")
+                #print("ComSat received data")
 
                 # Perform wireless shit!!!!!!!!!
 
-                recData = originalData
-                self.data = recData
+                self.data.append(element)

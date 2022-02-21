@@ -34,7 +34,7 @@ class ADSB_positional_msg:
         elif lat > 87 or lat < -87:
             return 1
         else:
-            return math.floor(2 * math.pi / (math.acos(1 - (1 - math.cos(math.pi / (2 * nZ))) / (pow(math.cos(math.pi / 180 * lat), 2)))))
+            return math.floor(2 * math.pi * (math.acos(1 - ((1 - math.cos(math.pi / (2 * nZ))) / (pow(math.cos(math.pi / 180 * lat), 2))))))
 
     def decodeMessage(self, msg):
         msgBin = bin(int(msg, 16))[2:]
@@ -202,13 +202,16 @@ class ADSB_positional_msg:
         while(len(latCPRbits))<17:
             latCPRbits = "0" + latCPRbits
 
-        numLongitudes = self.calculateNL(latitude + cprFormat)
+        # longitude
+        if (longitude < 0):
+            longitude + 360
+
+        numLongitudes = self.calculateNL(latitude - cprFormat)
         if numLongitudes < 1:
             numLongitudes = 1
 
-        if(longitude < 0):
-            longitude + 360
         dLon = 360/numLongitudes
+
         lonCPR = math.floor(longitude%dLon * (1.00/dLon) * pow(2, 17) + 0.5)
         self.lonCPR = lonCPR
         lonCPRbits = bin(lonCPR)[2:]
@@ -387,9 +390,18 @@ class ADSB_coder:
         return (prefix + msgPart + crc).upper()
 
 
-#temp = ADSB_coder()
+temp = ADSB_coder()
 #a = temp.decode("8D40621D58C386435CC412692AD6", True)
-#b = temp.decode("8D40621D58C382D690C8AC2863A7", True)
+#b = temp.decode("8D40621D58C382D690C8AC2863A7")
+#a0 = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
+#a = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
+#b = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.812380664665273, 106.41590483368653)
+#c = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.796160274025834, 106.41721971949103)
+#temp.decode(a)
+#temp.decode(b)
+#temp.decode(c)
+#temp.decode("8DB3A336A1C3837FE45B18CFBD9D")
+#temp.decode("8DB3A336A1C3875D2C5B33E40D65")
 #temp.decode("8D40621D58C382D690C8AC2863A7")
 #res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
 #res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)

@@ -18,7 +18,7 @@ class Simulation:
         plane = Plane.Plane("Plane_ID")
         hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511))
         saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622))
-        groundstation = [hanoiAirport, saigonAirport]
+        groundstations = [hanoiAirport, saigonAirport]
         commSat = CommSat.CommSat()
 
         while not plane.atDestination():
@@ -30,16 +30,19 @@ class Simulation:
             self.realFlightpath.append(currentPos)
 
             # Transmission
-            transmission = plane.transmit(groundstation, commSat)  # Transmission[data, transmitTo, from]
+            transmission = plane.transmitPosition(groundstations, commSat)  # Transmission[data, transmitTo, from]
+            transmission += plane.transmitIdentification(groundstations, commSat)
 
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
 
-            for element in groundstation:
-                transmission.append(commSat.transmit(element))  # Transmission[commSat.data, groundstation, from]
+            #Satellite transmits to all groundstations
+            transmission += commSat.transmit(groundstations)  # Transmission[commSat.data, groundstations, from]
 
             # Save received position
-            self.recFlightpathHanoi.append(groundstation[0].receive(transmission))  # data.mod, data.noise, data.demod ... -> return pos
-            self.recFlightpathSaigon.append(groundstation[1].receive(transmission))
+            groundstations[0].receive(transmission) # data.mod, data.noise, data.demod ... -> return pos
+            groundstations[1].receive(transmission)
+        self.recFlightpathHanoi = groundstations[0].receivedPositions
+        self.recFlightpathSaigon = groundstations[1].receivedPositions
 
     def plot(self):
         img = plt.imread("img/map.JPG")
