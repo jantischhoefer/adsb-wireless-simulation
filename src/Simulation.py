@@ -85,6 +85,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(1)  # 1 second
+    simulation = Simulation(30)  # 1 second
     simulation.run()
     simulation.plot()

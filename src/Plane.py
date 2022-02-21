@@ -42,11 +42,11 @@ class Plane:
         # Check Range
         for element in groundstation:
             if self.inRange(element):
-                x = Transmission.Transmission(data, self.id, element.id, None, None)
+                x = Transmission.Transmission(data, self.id, element.id)
                 #print("Plane transmit:", x, element.id)
                 transmission.append(x)
 
-        transmission.append(Transmission.Transmission(data, self.id, commSat.id, None, None))
+        transmission.append(Transmission.Transmission(data, self.id, commSat.id))
 
         return transmission
 

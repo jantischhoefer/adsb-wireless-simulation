@@ -5,7 +5,7 @@ def hex_string_to_bit_array(hex_string):
     return result
 
 def bit_array_to_hex_string(bit_arr):
-    return hex(int(''.join(str(b) for b in bit_arr), 2))[2:]
+    return hex(int(''.join(str(b) for b in bit_arr), 2))[2:].zfill(28)
 
 def adsb_int_to_char(int_val):
     if int_val == 1: return 'A'

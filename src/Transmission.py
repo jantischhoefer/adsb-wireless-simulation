@@ -15,7 +15,13 @@ class Transmission:
 
     # modulate, channel, demodulate in one function
     def transmit(self):
-        return utils.bit_array_to_hex_string(self.mod.demodulate(self.mod.simChannel(self.mod.modulate())))
+        modData = self.mod.modulate()
+        # print("Modulated:" + str(modData))
+        noisy = self.mod.simChannel(modData)
+        # print("Noisy:" + str(noisy))
+        demod = self.mod.demodulate(noisy)
+        # print("Demodulated:" + str(demod))
+        return utils.bit_array_to_hex_string(demod)
 
     def getData(self) -> str:
         return self.data
@@ -44,8 +50,9 @@ class BPSK_AWGN_Rayleigh_Channel:
 
     def modulate(self):
         bpsk = []
-        for n in range(0, len(self.signal)):
-            if self.signal[n] == 1:
+        bitlist = utils.hex_string_to_bit_array(self.signal)
+        for n in range(0, len(bitlist)):
+            if bitlist[n] == 1:
                 bpsk.extend(self.x1)
             else:
                 bpsk.extend(self.x2)

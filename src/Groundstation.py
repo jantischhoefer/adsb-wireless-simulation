@@ -15,15 +15,15 @@ class Groundstation:
 
         for element in transmission:
             if element.dest == self.id:
-                originalData = element.data
-
                 # Perform wireless shit!!!!!!!!!
-
+                transmittedData = element.transmit()
+                #print(transmittedData)
+                #print(len(transmittedData))
                 # Process multiple positions received
                 # to decode msg, use msg = self.adsb_coder.decode(recData[i])
                 # to identify message type, use isinstance(msg, ADSB.ADSB_identification_msg) or isinstance(msg, ADSB.ADSB_positional_msg)
                 # to get coordinates from positional message, use msg.decodedLat and msg.decodedLon ONLY if msg.latLonDecoded == True
-                msg = self.adsb_coder.decode(originalData, True)
+                msg = self.adsb_coder.decode(transmittedData, True)
                 if(isinstance(msg, ADSB.ADSB_positional_msg)):
                     if(msg.latLonDecoded == True):
                         self.receivedPositions.append((msg.decodedLon, msg.decodedLat, msg.ICAOaddress))
