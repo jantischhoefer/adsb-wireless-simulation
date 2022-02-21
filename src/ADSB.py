@@ -317,7 +317,7 @@ class ADSB_coder:
         remainder = binMSG[-24:]
         return hex(int(remainder, 2))[2:].upper().zfill(6).upper()
 
-    def decode(self, msgHex):
+    def decode(self, msgHex, noPrint=False):
         # first, check crc
         if self.calculateCRC(msgHex[:-6]) != msgHex[-6:]:
             print("Checksum of received ADS-B message does not check out. Aborting")
@@ -333,8 +333,9 @@ class ADSB_coder:
             identMSG = ADSB_identification_msg(downlinkFormat, transponderCapability, ICAOaddress)
             identMSG.rawMSGbin = bin(int(msgHex, 16))
             identMSG.decodeMessage(msgHex[8:22])
-            print("Identification-message received.")
-            identMSG.printMessage()
+            if(noPrint == False):
+                print("Identification-message received.")
+                identMSG.printMessage()
             self.decIdentMSGS.append(identMSG)
             return identMSG
         elif (typeCode >= 9 and typeCode <= 18) or (typeCode >= 20 and typeCode <= 22):
@@ -342,8 +343,9 @@ class ADSB_coder:
             posMSG = ADSB_positional_msg(downlinkFormat, transponderCapability, ICAOaddress)
             posMSG.rawMSGbin = bin(int(msgHex, 16))
             posMSG.decodeMessage(msgHex[8:22])
-            print("Position-message received.")
-            posMSG.printMessage()
+            if (noPrint == False):
+                print("Position-message received.")
+                posMSG.printMessage()
             self.decPosMSGS.append(posMSG)
             posMSG.determineTruePosition(ICAOaddress, self.decPosMSGS)
             return posMSG
@@ -380,9 +382,9 @@ class ADSB_coder:
 
 
 #temp = ADSB_coder()
-#temp.decode("8D40621D58C386435CC412692AD6")
-#temp.decode("8D40621D58C382D690C8AC2863A7")
+#temp.decode("8D40621D58C386435CC412692AD6", True)
+#temp.decode("8D40621D58C382D690C8AC2863A7", True)
 #res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
 #res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
-#temp.decode(res1)
+#temp.decode(res1, True)
 #temp.decode(res2)
