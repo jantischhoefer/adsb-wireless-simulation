@@ -6,17 +6,16 @@ from matplotlib.pyplot import xlabel, ylabel, title, grid, show
 import utils
 
 class Transmission:
-    def __init__(self, data, src, dest, freq, mod_type, SNRdB) -> None:
+    def __init__(self, data, src, dest, SNRdB = 10, channel_type = 'iridium') -> None:
         self.data = data # encoded data from src --> dest
         self.src = src # source id
         self.dest = dest # destination id
-        self.freq = freq # carrier frequency
         self.SNRdB = SNRdB # signal to noise ratio in dB
-        self.mod = self._getModulator(mod_type) # modulator
+        self.mod = self._getChannel(channel_type) # modulator
 
     # modulate, channel, demodulate in one function
     def transmit(self) -> str:
-        return utils.bit_array_to_hex_string(self.mod.demodulate(self.mod.channel(self.mod.modulate())))
+        return utils.bit_array_to_hex_string(self.mod.demodulate(self.mod.simChannel(self.mod.modulate())))
 
     def getData(self) -> str:
         return self.data
@@ -27,21 +26,21 @@ class Transmission:
     def getDest(self) -> str:
         return self.dest
 
-    def _getModulator(self, mod_type):
-        if mod_type == 'bpsk': return BPSK_AWGN_Rayleigh_Modulator(self.freq, self.data, self.SNRdB)
+    def _getChannel(self, channel_type):
+        if channel_type == 'iridium': return BPSK_AWGN_Rayleigh_Channel(self.data, self.SNRdB)
         else: return None
 
 
-class BPSK_AWGN_Rayleigh_Modulator:
-    def __init__(self, freq, signal, SNRdB) -> None:
-        self.freq = freq
+class BPSK_AWGN_Rayleigh_Channel:
+    def __init__(self, signal, SNRdB) -> None:
+        self.freq = 1616000000 # [Hz] carrier frequency
         self.signal = signal
         self.SNRdB = SNRdB
         self.sample_rate = 96
-        self.t = np.arange(0, 3/freq, 3/(freq*self.sample_rate))
-        self.l = np.arange(0, 3*3/freq, 3/(freq*self.sample_rate))
-        self.x1 = [np.sin(2*np.pi*freq*ts) for ts in self.t]
-        self.x2 = [-np.sin(2*np.pi*freq*ts) for ts in self.t]
+        self.t = np.arange(0, 3/self.freq, 3/(self.freq*self.sample_rate))
+        self.l = np.arange(0, 3*3/self.freq, 3/(self.freq*self.sample_rate))
+        self.x1 = [np.sin(2*np.pi*self.freq*ts) for ts in self.t]
+        self.x2 = [-np.sin(2*np.pi*self.freq*ts) for ts in self.t]
 
     def modulate(self):
         bpsk = []
@@ -52,7 +51,7 @@ class BPSK_AWGN_Rayleigh_Modulator:
                 bpsk.extend(self.x2)
         return np.array(list(bpsk), dtype=float)
 
-    def channel(self, signal):
+    def simChannel(self, signal):
         h_abs = rayleigh(len(signal)) # Rayleigh flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
         return awgn(self.SNRdB, hs) # return signal with added awg noise
@@ -104,15 +103,14 @@ def rayleigh(N):
 if __name__ == '__main__':
     sample_data = '10a45691824da534bc90ff2a3cde'
     d = np.array(utils.hex_string_to_bit_array(sample_data))
-    t = Transmission(d, 'a360', 's-32', 1616000000, 'bpsk', 5)
-    mod_data = t.mod.modulate()
-    rayleighAwgn = t.mod.channel(mod_data)
-    demod = t.mod.demodulate(rayleighAwgn)
-    t.mod.plot(mod_data, 'mod', 'v', 't')
-    t.mod.plot(rayleighAwgn, 'noise', 'v', 't')
+    t = Transmission(d, 'a360', 's-32', 5, 'iridium')
+    #mod_data = t.mod.modulate()
+    #rayleighAwgn = t.mod.channel(mod_data)
+    #demod = t.mod.demodulate(rayleighAwgn)
+    transmitted = t.transmit()
     print(sample_data)
-    print("Demod len: "+ str(len(demod)))
-    print(utils.bit_array_to_hex_string(demod))
+    print("Demod len: "+ str(len(transmitted)))
+    print(transmitted)
     #print(sample_data)
     #print(utils.bit_array_to_hex_string(t.getData()))
 """
