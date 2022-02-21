@@ -34,14 +34,18 @@ class Plane:
 
         transmission = []
 
-        data = self.encodeADSBhex()
+        # TODO David
+        # data = self.encodeADSBhex()
+        data = self.position
 
         # Check Range
-        if self.inRange(groundstation):
-            transmission.append(Transmission.Transmission(data, self.id, groundstation.id))
+        for element in groundstation:
+            if self.inRange(element):
+                x = Transmission.Transmission(data, self.id, element.id, None, None)
+                print("Plane transmit:", x, element.id)
+                transmission.append(x)
 
-        if self.inRange(commSat):
-            transmission.append(Transmission.Transmission(data, self.id, commSat.id))
+        transmission.append(Transmission.Transmission(data, self.id, commSat.id, None, None))
 
         return transmission
 
@@ -54,8 +58,10 @@ class Plane:
     def inRange(self, destination):
         dist = geopy.distance.distance(self.position[::-1], destination.position[::-1]).m
         if dist > destination.recRange:
+            print("NO", destination.id)
             return False
         else:
+            print("YES", destination.id)
             return True
 
     def encodeADSBhex(self):
