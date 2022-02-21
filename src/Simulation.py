@@ -28,7 +28,7 @@ class Simulation:
             self.satPath.append(satPos)
 
             # Transmission
-            transmission = [plane.transmit(groundstation, commSat)]  # Transmission[data, transmitTo, from]
+            transmission = [plane.transmitPosition(groundstation, commSat)]  # Transmission[data, transmitTo, from]
 
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
             transmission.append(commSat.transmit(groundstation))  # Transmission[commSat.data, groundstation, from]
