@@ -8,7 +8,7 @@ import Transmission
 
 class Plane:
     # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
-    def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=1800, waypoints=[(106.660172, 10.762622)], callSign = "YOMAMA"):
+    def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=250, waypoints=[(106.660172, 10.762622)], callSign = "YOMAMA"):
         self.id = id
         self.ICAO = hex(random.randint(1, 16777214)) # create random ICAO address up to FFFFFF
         self.callSign = callSign

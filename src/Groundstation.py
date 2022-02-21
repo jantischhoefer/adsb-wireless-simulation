@@ -17,7 +17,7 @@ class Groundstation:
             if element.dest == self.id:
                 # Perform wireless shit!!!!!!!!!
                 transmittedData = element.transmit()
-                #print(transmittedData)
+
                 #print(len(transmittedData))
                 # Process multiple positions received
                 # to decode msg, use msg = self.adsb_coder.decode(recData[i])

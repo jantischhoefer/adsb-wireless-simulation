@@ -54,7 +54,7 @@ class Simulation:
         ax.add_patch(rangeHanoi)
         ax.add_patch(rangeSaigon)
         # Add real flight path to plot
-        ax.scatter(*zip(*self.realFlightpath), s=1.0, label='Real Flightpath')
+        # ax.scatter(*zip(*self.realFlightpath), s=1.0, label='Real Flightpath')
         # Add received flight paths to plot
         # first identify number of planes
 
@@ -85,6 +85,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(30)  # 1 second
+    simulation = Simulation(15)  # 1 second
     simulation.run()
     simulation.plot()

@@ -6,7 +6,7 @@ from matplotlib.pyplot import xlabel, ylabel, title, grid, show
 import utils
 
 class Transmission:
-    def __init__(self, data, src, dest, SNRdB = 10, channel_type = 'iridium') -> None:
+    def __init__(self, data, src, dest, SNRdB = 9, channel_type = 'iridium') -> None:
         self.data = data # encoded data from src --> dest
         self.src = src # source id
         self.dest = dest # destination id
@@ -15,12 +15,16 @@ class Transmission:
 
     # modulate, channel, demodulate in one function
     def transmit(self):
+        #print("Data:",self.data)
         modData = self.mod.modulate()
-        # print("Modulated:" + str(modData))
+        #print("Modulated:" + str(modData))
         noisy = self.mod.simChannel(modData)
         # print("Noisy:" + str(noisy))
+
+        #demod = self.mod.demodulate(modData)
         demod = self.mod.demodulate(noisy)
-        # print("Demodulated:" + str(demod))
+        #print("Demodulated:" + str(demod))
+        #print(utils.bit_array_to_hex_string(demod))
         return utils.bit_array_to_hex_string(demod)
 
     def getData(self) -> str:
@@ -33,8 +37,10 @@ class Transmission:
         return self.dest
 
     def _getChannel(self, channel_type):
-        if channel_type == 'iridium': return BPSK_AWGN_Rayleigh_Channel(self.data, self.SNRdB)
-        else: return None
+        if channel_type == 'iridium':
+            return BPSK_AWGN_Rayleigh_Channel(utils.hex_string_to_bit_array(self.data), self.SNRdB)
+        else:
+            return None
 
 
 class BPSK_AWGN_Rayleigh_Channel:
@@ -50,9 +56,8 @@ class BPSK_AWGN_Rayleigh_Channel:
 
     def modulate(self):
         bpsk = []
-        bitlist = utils.hex_string_to_bit_array(self.signal)
-        for n in range(0, len(bitlist)):
-            if bitlist[n] == 1:
+        for n in range(0, len(self.signal)):
+            if self.signal[n] == 1:
                 bpsk.extend(self.x1)
             else:
                 bpsk.extend(self.x2)
