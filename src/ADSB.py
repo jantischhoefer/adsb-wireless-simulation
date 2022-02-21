@@ -35,8 +35,10 @@ class ADSB_positional_msg:
 
     def decodeMessage(self, msg):
         msgBin = bin(int(msg, 16))[2:]
+        while(len(msgBin) < 56):
+            msgBin = "0" + msgBin
         # determine wether altitude is barometric or from GNSS
-        self.typeCode = int(msgBin[0:5], 2)
+        self.typeCode = int(msgBin[:5], 2)
 
         # determine surveillance status
         self.surveillanceStatus = int(msgBin[5:7], 2)
@@ -45,7 +47,7 @@ class ADSB_positional_msg:
         self.singleAntennaFlag = int(msgBin[7], 2)
 
         # determine altitude
-        altiBin = msgBin[7:19]
+        altiBin = msgBin[8:20]
         if altiBin[7] == '1':
             self.altitude = 25 * (int(altiBin[:7] + altiBin[8:], 2)) - 1000
         else:
@@ -60,14 +62,14 @@ class ADSB_positional_msg:
             self.altitudeSource = "GNSS"
 
         #timeflag
-        self.time = int(msgBin[19], 2)
+        self.time = int(msgBin[20], 2)
 
         #CPR format
-        self.cprFormat = int(msgBin[20], 2)
+        self.cprFormat = int(msgBin[21], 2)
 
         # latitude and longitude (CPR format)
-        self.latCPR = int(msgBin[21:38], 2) / pow(2, 17)
-        self.lonCPR = int(msgBin[38:55], 2) / pow(2, 17)
+        self.latCPR = int(msgBin[22:39], 2) / pow(2, 17)
+        self.lonCPR = int(msgBin[39:], 2) / pow(2, 17)
 
         return self
 
@@ -135,20 +137,80 @@ class ADSB_positional_msg:
         dLoneven = 360/neven
         dLonodd = 360/nodd
         lonEven = dLoneven*(m%neven + lonCPReven)
-        lonodd = dLonodd * (m % nodd + lonCPRodd)
+        lonOdd = dLonodd * (m % nodd + lonCPRodd)
 
         longitude = 0
         if Teven >= Todd:
             longitude = lonEven
         else:
-            longitude = lonodd
+            longitude = lonOdd
         if longitude >= 180:
             longitude = longitude - 360
 
         print("Decoded Longitude: ", longitude, "\nDecoded Latitude: ", latitude)
 
-    def encodeMessage(self, surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude):
-        return ""
+    def encodeMessage(self, surveillanceStatus, singleAntennaFlag, altitude, latitude, longitude, time, typeCode, cprFormat):
+        self.surveillanceStatus = surveillanceStatus
+        self.singleAntennaFlag = singleAntennaFlag
+        self.altitude = altitude
+        self.time = time
+        self.typeCode = typeCode
+        self.cprFormat = cprFormat
+
+        # type code
+        typeCodeBits = bin(typeCode)[2:]
+        while len(typeCodeBits) < 5:
+            typeCodeBits = "0" + typeCodeBits
+
+        # surveillance status
+        surveillanceStatusBits = bin(surveillanceStatus)[2:]
+        while len(surveillanceStatusBits) < 2:
+            surveillanceStatusBits = "0" + surveillanceStatusBits
+
+        # single antenna flag is already binary, as are time and cpr formats
+
+        # encode altitude
+        altitudeBits = ""
+        altitudeFt = altitude * 3.281
+        altitudeFt = 38000
+        if altitudeFt > 50000:
+            altitudeBits = bin(int((altitudeFt + 1000.0)//100.0))[2:]
+            while (len(altitudeBits) < 11):
+                altitudeBits = "0" + altitudeBits
+            altitudeBits = altitudeBits[0:7] + "0" + altitudeBits[8:]
+        else:
+            altitudeBits = bin(int((altitudeFt + 1000.0) // 25.0))[2:]
+            while(len(altitudeBits) < 11):
+                altitudeBits = "0" + altitudeBits
+            altitudeBits = altitudeBits[0:7] + "1" + altitudeBits[7:]
+
+        # encode latitude and longitude
+        latCPRbits = "10010000110101110"
+        lonCPRbits = "01100010000010010"
+
+        # for latitude, globe is divided in 60 equally sized zones, each zone divided in 2^17 bins and only the bins are transmitted
+        dLat = 360/(60 - cprFormat)
+        latCPR = math.floor(latitude%dLat * (1.00/dLat) * pow(2, 17)+0.5)
+        self.latCPR = latCPR
+        latCPRbits = bin(latCPR)[2:]
+        while(len(latCPRbits))<17:
+            latCPRbits = "0" + latCPRbits
+
+        numLongitudes = self.calculateNL(latitude + cprFormat)
+        if numLongitudes < 1:
+            numLongitudes = 1
+
+        if(longitude < 0):
+            longitude + 360
+        dLon = 360/numLongitudes
+        lonCPR = math.floor(longitude%dLon * (1.00/dLon) * pow(2, 17) + 0.5)
+        self.lonCPR = lonCPR
+        lonCPRbits = bin(lonCPR)[2:]
+        while (len(lonCPRbits)) < 17:
+            lonCPRbits = "0" + lonCPRbits
+
+        return hex(int(typeCodeBits + surveillanceStatusBits + str(singleAntennaFlag) + altitudeBits + str(time) + str(cprFormat) + latCPRbits + lonCPRbits, 2))
+
 
     def printMessage(self):
         dataStr = ""
@@ -274,6 +336,7 @@ class ADSB_coder:
             print("Identification-message received.")
             identMSG.printMessage()
             self.decIdentMSGS.append(identMSG)
+            return identMSG
         elif (typeCode >= 9 and typeCode <= 18) or (typeCode >= 20 and typeCode <= 22):
             # position message
             posMSG = ADSB_positional_msg(downlinkFormat, transponderCapability, ICAOaddress)
@@ -283,6 +346,7 @@ class ADSB_coder:
             posMSG.printMessage()
             self.decPosMSGS.append(posMSG)
             posMSG.determineTruePosition(ICAOaddress, self.decPosMSGS)
+            return posMSG
 
     # encode message prefix containing downlink format and transponder capability
     def encodeADSBprefix(self, downlinkFormat, transponderCapability, ICAOaddress):
@@ -292,8 +356,18 @@ class ADSB_coder:
             ICAObin = "0" + ICAObin
         return hex(int(dFcTbin + ICAObin, 2)).upper()
 
-    def encodePosition(self, surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude):
-        ADSB_positional_msg.encodeMessage(surveillanceStatus, singleAntennaFlag, altitude, time, cprFormat, latitude, longitude)
+    def encodePosition(self, downlinkFormat, transponderCapability, ICAOaddress, surveillanceStatus, singleAntenna, altitude, latitude, longitude, time=0, typeCode=20):
+        prefix = self.encodeADSBprefix(downlinkFormat, transponderCapability, ICAOaddress)[2:]
+        posMSG = ADSB_positional_msg(downlinkFormat, transponderCapability, ICAOaddress)
+        cprFormat = 0
+        # make cpr format alternate between even and odd
+        if(len(self.encPosMSGS) >= 1 and self.encPosMSGS[-1].cprFormat == 0):
+            cprFormat = 1
+        msgPart = posMSG.encodeMessage(surveillanceStatus, singleAntenna, altitude, latitude, longitude, time, typeCode, cprFormat)[2:]
+        crc = self.calculateCRC(prefix + msgPart)
+        posMSG.rawMSGbin = bin(int(prefix + msgPart + crc, 16))
+        self.encPosMSGS.append(posMSG)
+        return (prefix + msgPart + crc).upper()
 
     def encodeIdentification(self, downlinkFormat, transponderCapability, ICAOaddress, vortexCategory, callSign, typeCode = 0):
         prefix = self.encodeADSBprefix(downlinkFormat, transponderCapability, ICAOaddress)[2:]
@@ -308,3 +382,7 @@ class ADSB_coder:
 #temp = ADSB_coder()
 #temp.decode("8D40621D58C386435CC412692AD6")
 #temp.decode("8D40621D58C382D690C8AC2863A7")
+#res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
+#res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
+#temp.decode(res1)
+#temp.decode(res2)
