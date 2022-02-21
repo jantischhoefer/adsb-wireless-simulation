@@ -49,10 +49,10 @@ class Plane:
         return transmission
 
     def transmitPosition(self, groundstation, commSat):
-        self.transmit(groundstation, commSat, self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height, self.position[1], self.position[0]))
+        return self.transmit(groundstation, commSat, self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height, self.position[1], self.position[0]))
 
     def transmitIdentification(self, groundstation, commSat):
-        self.transmit(groundstation, commSat, self.adsb_coder.encodeIdentification(17, 5, self.ICAO, 2, self.callSign, 4))
+        return self.transmit(groundstation, commSat, self.adsb_coder.encodeIdentification(17, 5, self.ICAO, 2, self.callSign, 4))
 
     def atDestination(self):
         if len(self.waypoints) < 1:
