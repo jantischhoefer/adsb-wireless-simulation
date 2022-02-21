@@ -18,6 +18,7 @@ class ADSB_positional_msg:
     lonCPR = 0
     decodedLat = 0
     decodedLon = 0
+    latLonDecoded = False
 
     def __init__(self, downlinkFormat, transponderCapability, ICAOaddress):
         self.downlinkFormat = downlinkFormat
@@ -153,6 +154,7 @@ class ADSB_positional_msg:
 
         self.decodedLat = latitude
         self.decodedLon = longitude
+        self.latLonDecoded = True
         if (noPrint == False):
             print("Decoded Longitude: ", longitude, "\nDecoded Latitude: ", latitude)
 
@@ -386,7 +388,8 @@ class ADSB_coder:
 
 
 #temp = ADSB_coder()
-#temp.decode("8D40621D58C386435CC412692AD6", True)
+#a = temp.decode("8D40621D58C386435CC412692AD6", True)
+#b = temp.decode("8D40621D58C382D690C8AC2863A7", True)
 #temp.decode("8D40621D58C382D690C8AC2863A7")
 #res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
 #res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)

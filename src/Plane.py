@@ -1,17 +1,22 @@
 import geopy.distance
 import great_circle_calculator.great_circle_calculator as gcc
+import ADSB
+from numpy import random
 
 import Transmission
 
 
 class Plane:
     # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
-    def __init__(self, id, position=(105.808817, 21.028511), height=0, speed=1800, waypoints=[(106.660172, 10.762622)]):
+    def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=1800, waypoints=[(106.660172, 10.762622)], callSign = "YOMAMA"):
         self.id = id
+        self.ICAO = hex(random.randint(1, 16777214)) # create random ICAO address up to FFFFFF
+        self.callSign = callSign
         self.position = position
         self.height = height
         self.speed = speed
         self.waypoints = waypoints
+        self.adsb_coder = ADSB.ADSB_coder()
 
     # updates the position after x seconds
     def updatePos(self, timestep):
@@ -30,11 +35,9 @@ class Plane:
 
         return self.position
 
-    def transmit(self, groundstation, commSat):
+    def transmit(self, groundstation, commSat, data):
 
         transmission = []
-
-        data = self.encodeADSBhex()
 
         # Check Range
         if self.inRange(groundstation):
@@ -44,6 +47,12 @@ class Plane:
             transmission.append(Transmission.Transmission(data, self.id, commSat.id))
 
         return transmission
+
+    def transmitPosition(self, groundstation, commSat):
+        self.transmit(groundstation, commSat, self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height, self.position[1], self.position[0]))
+
+    def transmitIdentification(self, groundstation, commSat):
+        self.transmit(groundstation, commSat, self.adsb_coder.encodeIdentification(17, 5, self.ICAO, 2, self.callSign, 4))
 
     def atDestination(self):
         if len(self.waypoints) < 1:
@@ -57,6 +66,3 @@ class Plane:
             return False
         else:
             return True
-
-    def encodeADSBhex(self):
-        return self.position
