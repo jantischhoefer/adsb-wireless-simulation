@@ -302,13 +302,14 @@ class ADSB_identification_msg:
 
 class ADSB_coder:
 
-    # lists for decoded messages
-    decPosMSGS = []
-    decIdentMSGS = []
+    def __init__(self):
+        # lists for decoded messages
+        self.decPosMSGS = []
+        self.decIdentMSGS = []
 
-    # lists for encoded messages
-    encPosMSGS = []
-    encIdentMSGS = []
+        # lists for encoded messages
+        self.encPosMSGS = []
+        self.encIdentMSGS = []
 
     def calculateCRC(self, msg):
         generator = "1111111111111010000001001"
