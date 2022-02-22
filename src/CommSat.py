@@ -12,7 +12,7 @@ class CommSat:
         transmission = []
         for element in self.data:
             for gs in groundstations:
-                transmission.append(Transmission.Transmission(element, self.id, gs.id))
+                transmission.append(Transmission.Transmission(element, self.id, gs.id, SNRdB=10))
             self.data.remove(element)
 
         #print("ComSat transmit:", transmission)
