@@ -33,7 +33,7 @@ class ADSB_positional_msg:
         elif lat > 87 or lat < -87:
             return 1
         else:
-            return math.floor(2 * math.pi * (
+            return math.floor(2 * math.pi / (
                 math.acos(1 - ((1 - math.cos(math.pi / (2 * nZ))) / (pow(math.cos(math.pi / 180 * lat), 2))))))
 
     def decodeMessage(self, msg):
@@ -71,8 +71,8 @@ class ADSB_positional_msg:
         self.cprFormat = int(msgBin[21], 2)
 
         # latitude and longitude (CPR format)
-        self.latCPR = int(msgBin[22:39], 2) / pow(2, 17)
-        self.lonCPR = int(msgBin[39:], 2) / pow(2, 17)
+        self.latCPR = int(msgBin[22:39], 2)
+        self.lonCPR = int(msgBin[39:], 2)
 
         return self
 
@@ -116,9 +116,9 @@ class ADSB_positional_msg:
         nZ = 15
         dLateven = 360 / (4 * nZ)
         dLatodd = 360 / (4 * nZ - 1)
-        j = math.floor(59 * latCPReven - 60 * latCPRodd + 0.5)
-        latEven = dLateven * (j % 60 + latCPReven)
-        latOdd = dLatodd * (j % 59 + latCPRodd)
+        j = math.floor((59 * latCPReven - 60 * latCPRodd)/pow(2,17) + 0.5)
+        latEven = dLateven * (j % 60 + latCPReven/pow(2,17))
+        latOdd = dLatodd * (j % 60 + latCPRodd/pow(2,17))
         if (latEven >= 270): latEven = latEven - 360
         if (latOdd >= 270): latOdd = latOdd - 360
         if (self.calculateNL(latEven) != self.calculateNL(latOdd)):
@@ -132,7 +132,7 @@ class ADSB_positional_msg:
         else:
             latitude = latOdd
 
-        m = math.floor(lonCPReven * (self.calculateNL(latitude) - 1) - lonCPRodd * self.calculateNL(latitude) + 0.5)
+        m = math.floor(((lonCPReven * (self.calculateNL(latitude) - 1) - lonCPRodd * self.calculateNL(latitude))/(pow(2, 17))) + 0.5)
         neven = 1
         nodd = 1
         if self.calculateNL(latitude) > 1:
@@ -141,8 +141,8 @@ class ADSB_positional_msg:
             nodd = self.calculateNL(latitude - 1)
         dLoneven = 360 / neven
         dLonodd = 360 / nodd
-        lonEven = dLoneven * (m % neven + lonCPReven)
-        lonOdd = dLonodd * (m % nodd + lonCPRodd)
+        lonEven = dLoneven * (m % neven + lonCPReven / pow(2,17))
+        lonOdd = dLonodd * (m % nodd + lonCPRodd / pow(2,17))
 
         longitude = 0
         if Teven >= Todd:
@@ -207,7 +207,7 @@ class ADSB_positional_msg:
         if (longitude < 0):
             longitude + 360
 
-        numLongitudes = self.calculateNL(latitude - cprFormat)
+        numLongitudes = self.calculateNL(latitude)-cprFormat
         if numLongitudes < 1:
             numLongitudes = 1
 
@@ -395,16 +395,16 @@ class ADSB_coder:
         return (prefix + msgPart + crc).upper()
 
 
-# temp = ADSB_coder()
-# a = temp.decode("8D40621D58C386435CC412692AD6", True)
-# b = temp.decode("8D40621D58C382D690C8AC2863A7")
-# a0 = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
-# a = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
-# b = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.812380664665273, 106.41590483368653)
-# c = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.796160274025834, 106.41721971949103)
-# temp.decode(a)
-# temp.decode(b)
-# temp.decode(c)
+#temp = ADSB_coder()
+#a = temp.decode("8D40621D58C386435CC412692AD6", True)
+#b = temp.decode("8D40621D58C382D690C8AC2863A7")
+#a0 = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
+#a = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
+#b = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.812380664665273, 106.41590483368653)
+#c = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.796160274025834, 106.41721971949103)
+#temp.decode(a)
+#temp.decode(b)
+#temp.decode(c)
 # temp.decode("8DB3A336A1C3837FE45B18CFBD9D")
 # temp.decode("8DB3A336A1C3875D2C5B33E40D65")
 # temp.decode("8D40621D58C382D690C8AC2863A7")

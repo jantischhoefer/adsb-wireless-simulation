@@ -28,6 +28,7 @@ class Simulation:
 
         allPlanesArrived = False
 
+        timePassed = 0.0
         while not allPlanesArrived:
             # Clear transmission
             transmission = []
@@ -40,7 +41,8 @@ class Simulation:
                     self.realFlightpaths.append((newPos[0], newPos[1], plane.ICAO))
                     # Transmission
                     transmission += plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
-                    transmission += plane.transmitIdentification(self.groundstations, commSat)
+                    if(timePassed%5==0):
+                        transmission += plane.transmitIdentification(self.groundstations, commSat)
                     # not all planes arrived yet
                     allPlanesArrived = False
 
@@ -52,6 +54,9 @@ class Simulation:
             # Save received position
             for gs in self.groundstations:
                 gs.receive(transmission) # data.mod, data.noise, data.demod ... -> return pos
+
+            timePassed += self.timeStep
+        print("Total time passed (min): ", timePassed/60.0)
 
     def plot(self):
         img = plt.imread("img/map.JPG")
@@ -128,6 +133,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(15)  # 1 second
+    simulation = Simulation(5)  # 0.5 seconds
     simulation.run()
     simulation.plot()
