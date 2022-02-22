@@ -118,7 +118,7 @@ class ADSB_positional_msg:
         dLatodd = 360 / (4 * nZ - 1)
         j = math.floor((59 * latCPReven - 60 * latCPRodd)/pow(2,17) + 0.5)
         latEven = dLateven * (j % 60 + latCPReven/pow(2,17))
-        latOdd = dLatodd * (j % 60 + latCPRodd/pow(2,17))
+        latOdd = dLatodd * (j % 59 + latCPRodd/pow(2,17))
         if (latEven >= 270): latEven = latEven - 360
         if (latOdd >= 270): latOdd = latOdd - 360
         if (self.calculateNL(latEven) != self.calculateNL(latOdd)):
