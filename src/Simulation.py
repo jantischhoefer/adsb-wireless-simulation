@@ -124,7 +124,6 @@ class Simulation:
             legEntry = event.artist
             for scatterPlot in scatterPlots:
                 if scatterPlot.get_label() == legEntry.get_label():
-                    print("Toggle",legEntry.get_label())
                     visible = not scatterPlot.get_visible()
                     scatterPlot.set_visible(visible)
                     legEntry.set_alpha(1.0 if visible else 0.2)
