@@ -28,6 +28,7 @@ class Simulation:
 
         allPlanesArrived = False
 
+        timePassed = 0.0
         while not allPlanesArrived:
             # Clear transmission
             transmission = []
@@ -35,13 +36,14 @@ class Simulation:
             # Update the position of planes
             allPlanesArrived = True
             for plane in self.planes:
-                newPos = plane.updatePos(self.timeStep)
-                self.realFlightpaths.append((newPos[0], newPos[1], plane.ICAO))
-                # Transmission
-                transmission += plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
-                transmission += plane.transmitIdentification(self.groundstations, commSat)
-                # check if all planes arrived
                 if not plane.atDestination():
+                    newPos = plane.updatePos(self.timeStep)
+                    self.realFlightpaths.append((newPos[0], newPos[1], plane.ICAO))
+                    # Transmission
+                    transmission += plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
+                    if(timePassed%5==0):
+                        transmission += plane.transmitIdentification(self.groundstations, commSat)
+                    # not all planes arrived yet
                     allPlanesArrived = False
 
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
@@ -52,6 +54,9 @@ class Simulation:
             # Save received position
             for gs in self.groundstations:
                 gs.receive(transmission) # data.mod, data.noise, data.demod ... -> return pos
+
+            timePassed += self.timeStep
+        print("Total time passed (min): ", timePassed/60.0)
 
     def plot(self):
         img = plt.imread("img/map.JPG")
@@ -67,6 +72,7 @@ class Simulation:
         # Add real flight paths to plot
         lons, lats, icaos = zip(*self.realFlightpaths)
         icaoset = set(icaos)
+        scatterPlots = []
         for icao in icaoset:
             lonsnew = ()
             latsnew = ()
@@ -75,7 +81,8 @@ class Simulation:
                     lonsnew += (element[0],)
                     latsnew += (element[1],)
             label = "Real Flightpath of " + icao
-            ax.scatter(lonsnew, latsnew, s=1.0, c="#"+icao, label=label)
+            scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, c="#"+icao, label=label)
+            scatterPlots.append(scatterPlot)
         # Add received flight paths to plot
         # first identify number of planes
 
@@ -92,7 +99,8 @@ class Simulation:
                         latsnew += (element[1],)
                 label = "Received Flightpaths of " + icao + " in " + gs.name
                 color = int(icao, 16) + int(gs.name.lower(), 36)
-                ax.scatter(lonsnew, latsnew, s=1.0, marker=',', c="#" + hex(color)[2:8], label=label)
+                scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, marker=',', c="#" + hex(color)[2:8], label=label)
+                scatterPlots.append(scatterPlot)
 
         # Add groundstations to plot
         ax.scatter(x=105.808817, y=21.028511, c='g', marker='x', label='Hanoi Airport')
@@ -101,12 +109,30 @@ class Simulation:
         plt.xlim(99.4, 116.5)
         plt.ylim(9.4, 23.2)
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.legend(fontsize=8)
+        leg = ax.legend(fontsize=8)
+
+        # Enable legend picking
+        for legEntry in leg.legendHandles:
+            legEntry.set_picker(5)
+
+        def on_pick(event):
+            # On the pick event, find the original line corresponding to the legend
+            # proxy line, and toggle its visibility.
+            legEntry = event.artist
+            for scatterPlot in scatterPlots:
+                if scatterPlot.get_label() == legEntry.get_label():
+                    print("Toggle",legEntry.get_label())
+                    visible = not scatterPlot.get_visible()
+                    scatterPlot.set_visible(visible)
+                    legEntry.set_alpha(1.0 if visible else 0.2)
+                    fig.canvas.draw()
+
+        fig.canvas.mpl_connect('pick_event', on_pick)
 
         plt.show()
 
 
 if __name__ == "__main__":
-    simulation = Simulation(15)  # 1 second
+    simulation = Simulation(5)  # 0.5 seconds
     simulation.run()
     simulation.plot()
