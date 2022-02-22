@@ -10,6 +10,8 @@ class Groundstation:
         self.position = position
         self.recRange = 370000  # 370km
         self.receivedPositions = []
+        self.numReceivedMessages = 0
+        self.numCorruptedMessages = 0
 
     def receive(self, transmission):
 
@@ -17,6 +19,7 @@ class Groundstation:
             if element.dest == self.id:
                 # Perform wireless shit!!!!!!!!!
                 transmittedData = element.transmit()
+                self.numReceivedMessages += 1
 
                 #print(len(transmittedData))
                 # Process multiple positions received
@@ -28,3 +31,10 @@ class Groundstation:
                     #print(self.name, "received")
                     if(msg.latLonDecoded == True):
                         self.receivedPositions.append((msg.decodedLon, msg.decodedLat, msg.ICAOaddress))
+                elif(isinstance(msg, bool)):
+                    if msg == False:
+                        # message checksum failed
+                        self.numCorruptedMessages += 1
+
+    def getCorruptedMessageRate(self):
+        return (self.numCorruptedMessages / self.numReceivedMessages)

@@ -329,8 +329,9 @@ class ADSB_coder:
     def decode(self, msgHex, noPrint=False):
         # first, check crc
         if self.calculateCRC(msgHex[:-6]) != msgHex[-6:]:
-            print("Checksum of received ADS-B message does not check out. Aborting")
-            return
+            if(noPrint==False):
+                print("Checksum of received ADS-B message does not check out. Aborting")
+            return False
         # else:
         # print("Check sum correct!")
 

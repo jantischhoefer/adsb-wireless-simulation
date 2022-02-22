@@ -57,6 +57,9 @@ class Simulation:
 
             timePassed += self.timeStep
         print("Total time passed (min): ", timePassed/60.0)
+        for gs in self.groundstations:
+            corruptionRate = "%.2f" % (gs.getCorruptedMessageRate()*100)
+            print("Groundstation " + gs.name + " received " + corruptionRate + "% corrupted messages.")
 
     def plot(self):
         img = plt.imread("img/map.JPG")
