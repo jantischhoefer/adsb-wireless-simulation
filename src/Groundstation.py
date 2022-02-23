@@ -3,12 +3,12 @@ import Parameters
 
 
 class Groundstation:
-    def __init__(self, id, position, name):
+    def __init__(self, id, position, name, antenna_range):
         self.id = id
         self.name = name
         self.adsb_coder = ADSB.ADSB_coder()
         self.position = position
-        self.recRange = Parameters.ground_range
+        self.recRange = antenna_range
         self.receivedPositions = []
         self.numReceivedMessagesFromPlane = 0
         self.numReceivedMessagesFromSat = 0

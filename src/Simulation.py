@@ -8,22 +8,14 @@ import Plane
 
 class Simulation:
 
-    def __init__(self, timeStep):
+    def __init__(self):
         self.realFlightpaths = []
-        self.satPath = []
-        self.timeStep = timeStep
-        self.groundstations = []
-        self.planes = []
+        self.timeStep = Parameters.sim_timestep
+        self.groundstations = Parameters.groundstations
+        self.planes = Parameters.planes
 
     def run(self):
 
-        hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511), "Hanoi")
-        saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC")
-        self.groundstations = [hanoiAirport, saigonAirport]
-
-        plane1 = Plane.Plane("Plane_ID", waypoints=[(102.593618, 18.02), (100.593618, 13.741252),  (106.660172, 10.762622)])
-        plane2 = Plane.Plane("Plane_ID_2", waypoints=[(108.3, 20.3), (109.670204, 18.427483), (108.9, 15.6), (106.660172, 10.762622)])
-        self.planes = [plane1, plane2]
         commSat = CommSat.CommSat()
 
         allPlanesArrived = False
@@ -42,12 +34,13 @@ class Simulation:
                     # Transmission
                     transmission += plane.transmitPosition(self.groundstations,
                                                            commSat)  # Transmission[data, transmitTo, from]
+                    # identification messages are published at a frequency of 0.2Hz
                     if (timePassed % 5 == 0):
                         transmission += plane.transmitIdentification(self.groundstations, commSat)
                     # not all planes arrived yet
                     allPlanesArrived = False
 
-            # Satellite transmits to all groundstations
+            # Satellite transmits to all groundstations - this happens with a delay of one timestep
             transmission += commSat.transmit(
                 self.groundstations)  # Transmission[commSat.data, groundstations, from]
 
@@ -59,7 +52,7 @@ class Simulation:
                 gs.receive(transmission)  # data.mod, data.noise, data.demod ... -> return pos
 
             timePassed += self.timeStep
-        print("Total time passed (min): ", timePassed / 60.0)
+        print("Total time passed in Simulation (min): ", timePassed / 60.0)
         for gs in self.groundstations:
             gs.printCorruptedMessageRate()
 
@@ -70,10 +63,11 @@ class Simulation:
         # Add Comm Sat to plot
         ax.scatter(x=110, y=18, c='r', marker='x', label='Communication Satellite')
         # Add range of groundstation
-        rangeHanoi = plt.Circle((105.808817, 21.028511), Parameters.ground_range * 0.0000093, color='g', alpha=0.3)
-        rangeSaigon = plt.Circle((106.660172, 10.762622), Parameters.ground_range * 0.0000093, color='g', alpha=0.3)
-        ax.add_patch(rangeHanoi)
-        ax.add_patch(rangeSaigon)
+        for gs in self.groundstations:
+            rangepatch = plt.Circle(gs.position, gs.recRange * 0.0000093, color='g',
+                       alpha=0.3)
+            ax.add_patch(rangepatch)
+
         # Add real flight paths to plot
         lons, lats, icaos = zip(*self.realFlightpaths)
         icaoset = set(icaos)
@@ -141,6 +135,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(Parameters.sim_timestep)  # 5 seconds
+    simulation = Simulation()
     simulation.run()
     simulation.plot()
