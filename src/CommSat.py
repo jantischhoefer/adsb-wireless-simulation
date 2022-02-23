@@ -3,7 +3,6 @@ import Transmission
 
 
 class CommSat:
-    # pos: lon-lat, height: [m] 780km orbit, speed: [m/s] ~27.000km/hm waypoints: lon-lat
     def __init__(self):
         self.id = "Sat_ID"
         self.data = []
@@ -13,7 +12,7 @@ class CommSat:
         transmission = []
         for element in self.data:
             for gs in groundstations:
-                transmission.append(Transmission.Transmission(element, self.id, True, gs.id, carrier_freq=Parameters.sat_freq,
+                transmission.append(Transmission.Transmission(element, self.id, True, gs.id, carrier_frequency=Parameters.sat_freq,
                                                               SNRdB=Parameters.satellite_to_groundstation_SNRdB))
             self.data.remove(element)
 

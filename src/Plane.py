@@ -43,15 +43,15 @@ class Plane:
 
         transmission = []
 
-        # Check Range
         for element in groundstations:
+            # Check Range
             if self.inRange(element):
                 x = Transmission.Transmission(data, self.id, False, element.id, SNRdB=Parameters.plane_to_groundstation_SNRdB,
-                                              carrier_freq=Parameters.adsb_freq)
+                                              carrier_frequency=Parameters.adsb_freq)
                 transmission.append(x)
 
-        transmission.append(Transmission.Transmission(data, self.id, False, commSat.id, channel_type='rice',
-                                                      SNRdB=Parameters.plane_to_satellite_SNRdB, carrier_freq=Parameters.adsb_freq))
+        transmission.append(Transmission.Transmission(data, self.id, False, commSat.id, channel_model='bpsk-awgn-rice',
+                                                      SNRdB=Parameters.plane_to_satellite_SNRdB, carrier_frequency=Parameters.adsb_freq))
 
         return transmission
 
