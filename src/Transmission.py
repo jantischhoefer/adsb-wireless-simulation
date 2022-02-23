@@ -49,7 +49,7 @@ class BPSK_AWGN_Rayleigh_Channel:
         self.freq = carrier_freq  # [Hz] carrier frequency
         self.signal = signal
         self.SNRdB = SNRdB
-        self.sample_rate = 96
+        self.sample_rate = 48
         self.t = np.arange(0, 3 / self.freq, 3 / (self.freq * self.sample_rate))
         self.l = np.arange(0, 3 * 3 / self.freq, 3 / (self.freq * self.sample_rate))
         self.x1 = [np.sin(2 * np.pi * self.freq * ts) for ts in self.t]
@@ -98,7 +98,7 @@ class BPSK_AWGN_Rice_Channel:
         self.freq = carrier_freq  # [Hz] carrier frequency
         self.signal = signal
         self.SNRdB = SNRdB
-        self.sample_rate = 96
+        self.sample_rate = 48
         self.t = np.arange(0, 3 / self.freq, 3 / (self.freq * self.sample_rate))
         self.l = np.arange(0, 3 * 3 / self.freq, 3 / (self.freq * self.sample_rate))
         self.x1 = [np.sin(2 * np.pi * self.freq * ts) for ts in self.t]
@@ -146,9 +146,9 @@ def awgn(SNRdB, signal, L=1):
     gamma = 10 ** (SNRdB / 10)
 
     if signal.ndim == 1:
-        P = L * sum(abs(signal) ** 2) / len(signal)
+        P = L*10 * sum(abs(signal) ** 2) / len(signal)
     else:
-        P = L * sum(sum(abs(signal) ** 2)) / len(signal)
+        P = L*10 * sum(sum(abs(signal) ** 2)) / len(signal)
 
     N0 = P / gamma  # noise spectral density
     if np.isrealobj(signal):

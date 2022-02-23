@@ -46,9 +46,9 @@ class Groundstation:
 
     def printCorruptedMessageRate(self):
 
-        corruptionRate = "%.2f" % ((self.numCorruptedMessagesFromSat+self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane + self.numReceivedMessagesFromSat))
-        corruptionRateSat = "%.2f" % ((self.numCorruptedMessagesFromSat) / (self.numReceivedMessagesFromSat+0.0001))  # prevent div/0
-        corruptionRatePlane = "%.2f" % ((self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane+0.0001))  # prevent div/0
+        corruptionRate = "%.2f" % (((self.numCorruptedMessagesFromSat+self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane + self.numReceivedMessagesFromSat)) * 100)
+        corruptionRateSat = "%.2f" % (((self.numCorruptedMessagesFromSat) / (self.numReceivedMessagesFromSat+0.0001)) * 100)  # prevent div/0
+        corruptionRatePlane = "%.2f" % (((self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane+0.0001)) * 100)  # prevent div/0
         print("Groundstation " + self.name + " received " + corruptionRate + "% corrupted messages.")
-        print("  Groundstation " + self.name + " received " + corruptionRatePlane + "% corrupted messages from planes.")
-        print("  Groundstation " + self.name + " received " + corruptionRateSat + "% corrupted messages from satellites.")
+        print("  Groundstation " + self.name + " received " + corruptionRatePlane + "% corrupted messages from planes. (of " + str(self.numReceivedMessagesFromPlane) + ")")
+        print("  Groundstation " + self.name + " received " + corruptionRateSat + "% corrupted messages from satellites. (of " + str(self.numReceivedMessagesFromSat) + ")")
