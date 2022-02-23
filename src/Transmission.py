@@ -70,7 +70,7 @@ class BPSK_AWGN_Rayleigh_Channel:
     def simChannel(self, signal):
         h_abs = rayleigh(len(signal)) # Rayleigh flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
-        return awgn(self.SNRdB, hs, self.sample_rate) # return signal with added awg noise
+        return awgn(self.SNRdB, hs, self.sample_rate) / h_abs # return signal with added awg noise
 
     def demodulate(self, signal):
         corr1 = 0
@@ -117,7 +117,7 @@ class BPSK_AWGN_Rice_Channel:
     def simChannel(self, signal):
         h_abs = rice.rvs(1, len(signal)) # Rice flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
-        return awgn(self.SNRdB, hs, self.sample_rate) # return signal with added awg noise
+        return awgn(self.SNRdB, hs, self.sample_rate) / h_abs # return signal with added awg noise
 
     def demodulate(self, signal):
         corr1 = 0
@@ -162,14 +162,14 @@ def rayleigh(N):
     return abs(h)
 
 
-#"""
+"""
 if __name__ == '__main__':
     sample_data = '10a45691824da534bc90ff2a3cde'.upper()
     print(sample_data)
-    t = Transmission(sample_data, 'a360', 's-32', 5, 'rice')
+    t = Transmission(sample_data, 'a360', 's-32', 15, 'rice')
     transmitted = t.transmit()
     print(transmitted)
-#"""
+"""
 
 """
 Inspiration from paper: https://journals.vgtu.lt/index.php/Aviation/article/download/3574/3001
