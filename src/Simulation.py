@@ -63,10 +63,11 @@ class Simulation:
         # Add Comm Sat to plot
         ax.scatter(x=110, y=18, c='r', marker='x', label='Communication Satellite')
         # Add range of groundstation
-        rangeHanoi = plt.Circle((105.808817, 21.028511), Parameters.ground_station_antenna_range * 0.0000093, color='g', alpha=0.3)
-        rangeSaigon = plt.Circle((106.660172, 10.762622), Parameters.ground_station_antenna_range * 0.0000093, color='g', alpha=0.3)
-        ax.add_patch(rangeHanoi)
-        ax.add_patch(rangeSaigon)
+        for gs in self.groundstations:
+            rangepatch = plt.Circle(gs.position, gs.recRange * 0.0000093, color='g',
+                       alpha=0.3)
+            ax.add_patch(rangepatch)
+
         # Add real flight paths to plot
         lons, lats, icaos = zip(*self.realFlightpaths)
         icaoset = set(icaos)

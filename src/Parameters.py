@@ -2,7 +2,7 @@ import Groundstation
 import Plane
 
 # Simulation parameters
-sim_timestep = 60 # simulation timestep in seconds. 0.5s recommended to match ADS-B position publishing frequency
+sim_timestep = 0.5 # simulation timestep in seconds. 0.5s recommended to match ADS-B position publishing frequency
 
 # Signal to Noise Ratios
 plane_to_satellite_SNRdB = 6.1
@@ -15,8 +15,8 @@ adsb_freq = 1090000000  # 1090MHz (ADS-B Frequency)
 
 # Groundstations
 ground_station_antenna_range = 370000  # 370km
-hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511), "Hanoi")
-saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC")
+hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511), "Hanoi", ground_station_antenna_range)
+saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC", ground_station_antenna_range)
 groundstations = [hanoiAirport, saigonAirport]
 
 # Planes
