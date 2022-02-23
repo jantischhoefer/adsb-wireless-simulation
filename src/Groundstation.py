@@ -12,15 +12,20 @@ class Groundstation:
         self.position = position
         self.recRange = Parameters.ground_range
         self.receivedPositions = []
-        self.numReceivedMessages = 0
-        self.numCorruptedMessages = 0
+        self.numReceivedMessagesFromPlane = 0
+        self.numReceivedMessagesFromSat = 0
+        self.numCorruptedMessagesFromPlane = 0
+        self.numCorruptedMessagesFromSat = 0
 
     def receive(self, transmission):
 
         for element in transmission:
             if element.dest == self.id:
                 transmittedData = element.transmit()
-                self.numReceivedMessages += 1
+                if(element.src_is_satellite == True):
+                    self.numReceivedMessagesFromSat += 1
+                else:
+                    self.numReceivedMessagesFromPlane += 1
 
                 # Process multiple positions received
                 # to decode msg, use msg = self.adsb_coder.decode(recData[i])
@@ -34,7 +39,16 @@ class Groundstation:
                 elif (isinstance(msg, bool)):
                     if msg == False:
                         # message checksum failed
-                        self.numCorruptedMessages += 1
+                        if (element.src_is_satellite == True):
+                            self.numCorruptedMessagesFromSat += 1
+                        else:
+                            self.numCorruptedMessagesFromPlane += 1
 
-    def getCorruptedMessageRate(self):
-        return (self.numCorruptedMessages / self.numReceivedMessages)
+    def printCorruptedMessageRate(self):
+
+        corruptionRate = "%.2f" % ((self.numCorruptedMessagesFromSat+self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane + self.numReceivedMessagesFromSat))
+        corruptionRateSat = "%.2f" % ((self.numCorruptedMessagesFromSat) / (self.numReceivedMessagesFromSat+0.0001))  # prevent div/0
+        corruptionRatePlane = "%.2f" % ((self.numCorruptedMessagesFromPlane) / (self.numReceivedMessagesFromPlane+0.0001))  # prevent div/0
+        print("Groundstation " + self.name + " received " + corruptionRate + "% corrupted messages.")
+        print("  Groundstation " + self.name + " received " + corruptionRatePlane + "% corrupted messages from planes.")
+        print("  Groundstation " + self.name + " received " + corruptionRateSat + "% corrupted messages from satellites.")

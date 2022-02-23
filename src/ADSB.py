@@ -373,6 +373,8 @@ class ADSB_coder:
 
     def encodePosition(self, downlinkFormat, transponderCapability, ICAOaddress, surveillanceStatus, singleAntenna,
                        altitude, latitude, longitude, time=0, typeCode=20):
+        while(len(ICAOaddress)<6):
+            ICAOaddress = "0" + ICAOaddress
         prefix = self.encodeADSBprefix(downlinkFormat, transponderCapability, ICAOaddress)[2:]
         posMSG = ADSB_positional_msg(downlinkFormat, transponderCapability, ICAOaddress)
         cprFormat = 0

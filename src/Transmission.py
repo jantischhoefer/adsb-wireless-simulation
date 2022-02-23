@@ -7,9 +7,10 @@ import utils
 
 
 class Transmission:
-    def __init__(self, data, src, dest, SNRdB=9, channel_type='rayleigh', carrier_freq=1616000000) -> None:
+    def __init__(self, data, src, src_is_satellite, dest, SNRdB=9, channel_type='rayleigh', carrier_freq=1616000000) -> None:
         self.data = data  # encoded data from src --> dest
         self.src = src  # source id
+        self.src_is_satellite = src_is_satellite
         self.dest = dest  # destination id
         self.SNRdB = SNRdB  # signal to noise ratio in dB
         self.mod = self._getChannel(channel_type, carrier_freq)  # modulator
@@ -66,7 +67,7 @@ class BPSK_AWGN_Rayleigh_Channel:
     def simChannel(self, signal):
         h_abs = rayleigh(len(signal)) # Rayleigh flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
-        return awgn(self.SNRdB, hs, self.sample_rate) / h_abs # return signal with added awg noise
+        return awgn(self.SNRdB, hs) / h_abs # return signal with added awg noise
 
     def demodulate(self, signal):
         corr1 = 0
@@ -115,7 +116,7 @@ class BPSK_AWGN_Rice_Channel:
     def simChannel(self, signal):
         h_abs = rice.rvs(1, len(signal)) # Rice flat fading samples
         hs = h_abs * signal # fading effect on modulated symbols
-        return awgn(self.SNRdB, hs, self.sample_rate) / h_abs # return signal with added awg noise
+        return awgn(self.SNRdB, hs) / h_abs # return signal with added awg noise
 
     def demodulate(self, signal):
         corr1 = 0
