@@ -1,9 +1,10 @@
+import Parameters
 import Transmission
 
+
 class CommSat:
-    # pos: lon-lat, height: [m] 400km orbit, speed: [m/s] ~27.000km/hm waypoints: lon-lat, default=97200000
+    # pos: lon-lat, height: [m] 780km orbit, speed: [m/s] ~27.000km/hm waypoints: lon-lat
     def __init__(self):
-        # self.id = 'sat-' + str(uuid.uuid1())
         self.id = "Sat_ID"
         self.data = []
 
@@ -12,10 +13,9 @@ class CommSat:
         transmission = []
         for element in self.data:
             for gs in groundstations:
-                transmission.append(Transmission.Transmission(element, self.id, gs.id, SNRdB=10))
+                transmission.append(Transmission.Transmission(element, self.id, gs.id, carrier_freq=Parameters.sat_freq,
+                                                              SNRdB=Parameters.sat_SNRdB))
             self.data.remove(element)
-
-        #print("ComSat transmit:", transmission)
 
         return transmission
 
@@ -23,8 +23,6 @@ class CommSat:
 
         for element in transmission:
             if element.dest == self.id:
-                #print("ComSat received data")
-                # Perform wireless shit!!!!!!!!!
                 transmitted = element.transmit()
 
                 self.data.append(transmitted)
