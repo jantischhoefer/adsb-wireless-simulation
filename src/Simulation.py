@@ -21,8 +21,8 @@ class Simulation:
         saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC")
         self.groundstations = [hanoiAirport, saigonAirport]
 
-        plane1 = Plane.Plane("Plane_ID")
-        plane2 = Plane.Plane("Plane_ID_2", waypoints=[(108.660172, 17.762622), (106.660172, 10.762622)])
+        plane1 = Plane.Plane("Plane_ID", waypoints=[(102.593618, 18.02), (100.593618, 13.741252),  (106.660172, 10.762622)])
+        plane2 = Plane.Plane("Plane_ID_2", waypoints=[(108.3, 20.3), (109.670204, 18.427483), (108.9, 15.6), (106.660172, 10.762622)])
         self.planes = [plane1, plane2]
         commSat = CommSat.CommSat()
 
@@ -47,10 +47,12 @@ class Simulation:
                     # not all planes arrived yet
                     allPlanesArrived = False
 
+            # Satellite transmits to all groundstations
+            transmission += commSat.transmit(
+                self.groundstations)  # Transmission[commSat.data, groundstations, from]
+
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
 
-            # Satellite transmits to all groundstations
-            transmission += commSat.transmit(self.groundstations)  # Transmission[commSat.data, groundstations, from]
 
             # Save received position
             for gs in self.groundstations:
