@@ -10,7 +10,7 @@ class Groundstation:
         self.name = name
         self.adsb_coder = ADSB.ADSB_coder()
         self.position = position
-        self.recRange = Parameters.ground_range
+        self.recRange = Parameters.ground_station_antenna_range
         self.receivedPositions = []
         self.numReceivedMessagesFromPlane = 0
         self.numReceivedMessagesFromSat = 0

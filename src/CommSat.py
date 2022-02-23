@@ -14,7 +14,7 @@ class CommSat:
         for element in self.data:
             for gs in groundstations:
                 transmission.append(Transmission.Transmission(element, self.id, True, gs.id, carrier_freq=Parameters.sat_freq,
-                                                              SNRdB=Parameters.sat_SNRdB))
+                                                              SNRdB=Parameters.satellite_to_groundstation_SNRdB))
             self.data.remove(element)
 
         return transmission
