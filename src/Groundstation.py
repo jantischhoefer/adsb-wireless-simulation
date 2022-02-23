@@ -3,8 +3,6 @@ import Parameters
 
 
 class Groundstation:
-
-    # id should be 'HAN' or 'SGN'
     def __init__(self, id, position, name):
         self.id = id
         self.name = name
