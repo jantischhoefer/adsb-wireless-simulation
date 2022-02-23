@@ -397,3 +397,17 @@ class ADSB_coder:
         identMSG.rawMSGbin = bin(int(prefix + msgPart + crc, 16))
         self.encIdentMSGS.append(identMSG)
         return (prefix + msgPart + crc).upper()
+
+# Create coder
+# temp = ADSB_coder()
+# encode identification message
+# encodedStr = temp.encodeIdentification(17, 5, "F23B51", 2, "KLM123", 4)
+# print(encodedStr)
+# decode the message
+# temp.decode(encodedStr)
+# encode position messages - 2 messages are necessary to allow correct encoding
+# a = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
+# b = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.812380664665273, 106.41590483368653)
+# print(a, b)
+# temp.decode(a)
+# temp.decode(b)
