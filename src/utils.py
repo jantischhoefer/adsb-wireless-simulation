@@ -4,8 +4,10 @@ def hex_string_to_bit_array(hex_string):
     result.extend([int(b) for b in bits])
     return result
 
+
 def bit_array_to_hex_string(bit_arr):
     return hex(int(''.join(str(b) for b in bit_arr), 2))[2:].upper()
+
 
 def adsb_int_to_char(int_val):
     if int_val == 1: return 'A'
@@ -46,6 +48,7 @@ def adsb_int_to_char(int_val):
     if int_val == 56: return '8'
     if int_val == 57: return '9'
     return '#'
+
 
 def adsb_char_to_int(char):
     char = str.upper(char)

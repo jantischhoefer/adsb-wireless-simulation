@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-from collections import Counter
 
 import CommSat
 import Groundstation
+import Parameters
 import Plane
 
 
@@ -11,7 +11,7 @@ class Simulation:
     def __init__(self, timeStep):
         self.realFlightpaths = []
         self.satPath = []
-        self.timeStep = timeStep  # Seconds?
+        self.timeStep = timeStep
         self.groundstations = []
         self.planes = []
 
@@ -40,25 +40,26 @@ class Simulation:
                     newPos = plane.updatePos(self.timeStep)
                     self.realFlightpaths.append((newPos[0], newPos[1], plane.ICAO))
                     # Transmission
-                    transmission += plane.transmitPosition(self.groundstations, commSat)  # Transmission[data, transmitTo, from]
-                    if(timePassed%5==0):
+                    transmission += plane.transmitPosition(self.groundstations,
+                                                           commSat)  # Transmission[data, transmitTo, from]
+                    if (timePassed % 5 == 0):
                         transmission += plane.transmitIdentification(self.groundstations, commSat)
                     # not all planes arrived yet
                     allPlanesArrived = False
 
             commSat.receive(transmission)  # data.mod, data.noise, data.demod ... -> commSat.data
 
-            #Satellite transmits to all groundstations
+            # Satellite transmits to all groundstations
             transmission += commSat.transmit(self.groundstations)  # Transmission[commSat.data, groundstations, from]
 
             # Save received position
             for gs in self.groundstations:
-                gs.receive(transmission) # data.mod, data.noise, data.demod ... -> return pos
+                gs.receive(transmission)  # data.mod, data.noise, data.demod ... -> return pos
 
             timePassed += self.timeStep
-        print("Total time passed (min): ", timePassed/60.0)
+        print("Total time passed (min): ", timePassed / 60.0)
         for gs in self.groundstations:
-            corruptionRate = "%.2f" % (gs.getCorruptedMessageRate()*100)
+            corruptionRate = "%.2f" % (gs.getCorruptedMessageRate() * 100)
             print("Groundstation " + gs.name + " received " + corruptionRate + "% corrupted messages.")
 
     def plot(self):
@@ -68,8 +69,8 @@ class Simulation:
         # Add Comm Sat to plot
         ax.scatter(x=110, y=18, c='r', marker='x', label='Communication Satellite')
         # Add range of groundstation
-        rangeHanoi = plt.Circle((105.808817, 21.028511), 3.4, color='g', alpha=0.3)
-        rangeSaigon = plt.Circle((106.660172, 10.762622), 3.4, color='g', alpha=0.3)
+        rangeHanoi = plt.Circle((105.808817, 21.028511), Parameters.ground_range * 0.00918, color='g', alpha=0.3)
+        rangeSaigon = plt.Circle((106.660172, 10.762622), Parameters.ground_range * 0.00918, color='g', alpha=0.3)
         ax.add_patch(rangeHanoi)
         ax.add_patch(rangeSaigon)
         # Add real flight paths to plot
@@ -84,11 +85,10 @@ class Simulation:
                     lonsnew += (element[0],)
                     latsnew += (element[1],)
             label = "Real Flightpath of " + icao
-            scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, c="#"+icao, label=label)
-            scatterPlots.append(scatterPlot)
+            #scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, c="#" + icao, alpha=0.2, label=label)
+            #scatterPlots.append(scatterPlot)
         # Add received flight paths to plot
         # first identify number of planes
-
 
         for gs in self.groundstations:
             lons, lats, icaos = zip(*gs.receivedPositions)
@@ -97,7 +97,7 @@ class Simulation:
                 lonsnew = ()
                 latsnew = ()
                 for element in gs.receivedPositions:
-                    if(element[2] == icao):
+                    if (element[2] == icao):
                         lonsnew += (element[0],)
                         latsnew += (element[1],)
                 label = "Received Flightpaths of " + icao + " in " + gs.name
@@ -135,6 +135,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(5)  # 0.5 seconds
+    simulation = Simulation(Parameters.sim_timestep)  # 5 seconds
     simulation.run()
     simulation.plot()

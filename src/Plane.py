@@ -1,16 +1,18 @@
 import geopy.distance
 import great_circle_calculator.great_circle_calculator as gcc
-import ADSB
 from numpy import random
 
+import ADSB
+import Parameters
 import Transmission
 
 
 class Plane:
     # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
-    def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=250, waypoints=[(106.660172, 10.762622)], callSign = "YOMAMA"):
+    def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=250,
+                 waypoints=[(106.660172, 10.762622)], callSign="PHVHAP"):
         self.id = id
-        self.ICAO = hex(random.randint(1, 16777214))[2:] # create random ICAO address up to FFFFFF
+        self.ICAO = hex(random.randint(1, 16777214))[2:]  # create random ICAO address up to FFFFFF
         self.callSign = callSign
         self.position = position
         self.height = height
@@ -21,7 +23,7 @@ class Plane:
     # updates the position after x seconds
     def updatePos(self, timestep):
         if (len(self.waypoints) < 1):
-            return self.position # waypoints empty.
+            return self.position  # waypoints empty.
         # always fly towards the first waypoint in the list; when it is reached, delete it
         # determine distance
         dist = geopy.distance.distance(self.position[::-1], self.waypoints[0][::-1]).m  # geopy expects lat-lon order
@@ -42,22 +44,28 @@ class Plane:
         # Check Range
         for element in groundstations:
             if self.inRange(element):
-                x = Transmission.Transmission(data, self.id, element.id)
-                #print("Plane transmit:", x, element.id)
+                x = Transmission.Transmission(data, self.id, element.id, SNRdB=Parameters.ground_SNRdB,
+                                              carrier_freq=Parameters.adsb_freq)
                 transmission.append(x)
 
-        transmission.append(Transmission.Transmission(data, self.id, commSat.id, SNRdB=15, carrier_freq=1090000000))
+        transmission.append(Transmission.Transmission(data, self.id, commSat.id, channel_type='rice',
+                                                      SNRdB=Parameters.sat_SNRdB, carrier_freq=Parameters.adsb_freq))
 
         return transmission
 
     def transmitPosition(self, groundstations, commSat):
         # always send pairs of positions
-        transmission = self.transmit(groundstations, commSat, self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height, self.position[1], self.position[0]))
-        transmission += self.transmit(groundstations, commSat, self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height, self.position[1], self.position[0]))
+        transmission = self.transmit(groundstations, commSat,
+                                     self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height,
+                                                                    self.position[1], self.position[0]))
+        transmission += self.transmit(groundstations, commSat,
+                                      self.adsb_coder.encodePosition(17, 5, self.ICAO, 0, 1, self.height,
+                                                                     self.position[1], self.position[0]))
         return transmission
 
     def transmitIdentification(self, groundstations, commSat):
-        return self.transmit(groundstations, commSat, self.adsb_coder.encodeIdentification(17, 5, self.ICAO, 2, self.callSign, 4))
+        return self.transmit(groundstations, commSat,
+                             self.adsb_coder.encodeIdentification(17, 5, self.ICAO, 2, self.callSign, 4))
 
     def atDestination(self):
         if len(self.waypoints) < 1:

@@ -116,9 +116,9 @@ class ADSB_positional_msg:
         nZ = 15
         dLateven = 360 / (4 * nZ)
         dLatodd = 360 / (4 * nZ - 1)
-        j = math.floor((59 * latCPReven - 60 * latCPRodd)/pow(2,17) + 0.5)
-        latEven = dLateven * (j % 60 + latCPReven/pow(2,17))
-        latOdd = dLatodd * (j % 59 + latCPRodd/pow(2,17))
+        j = math.floor((59 * latCPReven - 60 * latCPRodd) / pow(2, 17) + 0.5)
+        latEven = dLateven * (j % 60 + latCPReven / pow(2, 17))
+        latOdd = dLatodd * (j % 59 + latCPRodd / pow(2, 17))
         if (latEven >= 270): latEven = latEven - 360
         if (latOdd >= 270): latOdd = latOdd - 360
         if (self.calculateNL(latEven) != self.calculateNL(latOdd)):
@@ -132,7 +132,8 @@ class ADSB_positional_msg:
         else:
             latitude = latOdd
 
-        m = math.floor(((lonCPReven * (self.calculateNL(latitude) - 1) - lonCPRodd * self.calculateNL(latitude))/(pow(2, 17))) + 0.5)
+        m = math.floor(((lonCPReven * (self.calculateNL(latitude) - 1) - lonCPRodd * self.calculateNL(latitude)) / (
+            pow(2, 17))) + 0.5)
         neven = 1
         nodd = 1
         if self.calculateNL(latitude) > 1:
@@ -141,8 +142,8 @@ class ADSB_positional_msg:
             nodd = self.calculateNL(latitude - 1)
         dLoneven = 360 / neven
         dLonodd = 360 / nodd
-        lonEven = dLoneven * (m % neven + lonCPReven / pow(2,17))
-        lonOdd = dLonodd * (m % nodd + lonCPRodd / pow(2,17))
+        lonEven = dLoneven * (m % neven + lonCPReven / pow(2, 17))
+        lonOdd = dLonodd * (m % nodd + lonCPRodd / pow(2, 17))
 
         longitude = 0
         if Teven >= Todd:
@@ -207,7 +208,7 @@ class ADSB_positional_msg:
         if (longitude < 0):
             longitude + 360
 
-        numLongitudes = self.calculateNL(latitude)-cprFormat
+        numLongitudes = self.calculateNL(latitude) - cprFormat
         if numLongitudes < 1:
             numLongitudes = 1
 
@@ -329,7 +330,7 @@ class ADSB_coder:
     def decode(self, msgHex, noPrint=False):
         # first, check crc
         if self.calculateCRC(msgHex[:-6]) != msgHex[-6:]:
-            if(noPrint==False):
+            if (noPrint == False):
                 print("Checksum of received ADS-B message does not check out. Aborting")
             return False
         # else:
@@ -394,22 +395,3 @@ class ADSB_coder:
         identMSG.rawMSGbin = bin(int(prefix + msgPart + crc, 16))
         self.encIdentMSGS.append(identMSG)
         return (prefix + msgPart + crc).upper()
-
-
-#temp = ADSB_coder()
-#a = temp.decode("8D40621D58C386435CC412692AD6", True)
-#b = temp.decode("8D40621D58C382D690C8AC2863A7")
-#a0 = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
-#a = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.82860103834444, 106.4145897656432)
-#b = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.812380664665273, 106.41590483368653)
-#c = temp.encodePosition(17, 5, "FFFFFF", 0, 1, 1000, 13.796160274025834, 106.41721971949103)
-#temp.decode(a)
-#temp.decode(b)
-#temp.decode(c)
-# temp.decode("8DB3A336A1C3837FE45B18CFBD9D")
-# temp.decode("8DB3A336A1C3875D2C5B33E40D65")
-# temp.decode("8D40621D58C382D690C8AC2863A7")
-# res1 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
-# res2 = temp.encodePosition(17, 5, "40621D", 0, 1, 2500, 52.2572021484375, 3.91937255859375, 0, 22)
-# temp.decode(res1, True)
-# temp.decode(res2)
