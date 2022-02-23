@@ -59,8 +59,7 @@ class Simulation:
             timePassed += self.timeStep
         print("Total time passed (min): ", timePassed / 60.0)
         for gs in self.groundstations:
-            corruptionRate = "%.2f" % (gs.getCorruptedMessageRate() * 100)
-            print("Groundstation " + gs.name + " received " + corruptionRate + "% corrupted messages.")
+            gs.printCorruptedMessageRate()
 
     def plot(self):
         img = plt.imread("img/map.JPG")
@@ -69,8 +68,8 @@ class Simulation:
         # Add Comm Sat to plot
         ax.scatter(x=110, y=18, c='r', marker='x', label='Communication Satellite')
         # Add range of groundstation
-        rangeHanoi = plt.Circle((105.808817, 21.028511), Parameters.ground_range * 0.00918, color='g', alpha=0.3)
-        rangeSaigon = plt.Circle((106.660172, 10.762622), Parameters.ground_range * 0.00918, color='g', alpha=0.3)
+        rangeHanoi = plt.Circle((105.808817, 21.028511), Parameters.ground_range * 0.0000093, color='g', alpha=0.3)
+        rangeSaigon = plt.Circle((106.660172, 10.762622), Parameters.ground_range * 0.0000093, color='g', alpha=0.3)
         ax.add_patch(rangeHanoi)
         ax.add_patch(rangeSaigon)
         # Add real flight paths to plot
@@ -85,11 +84,14 @@ class Simulation:
                     lonsnew += (element[0],)
                     latsnew += (element[1],)
             label = "Real Flightpath of " + icao
-            #scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, c="#" + icao, alpha=0.2, label=label)
-            #scatterPlots.append(scatterPlot)
+            color = hex(int(icao, 16))[2:8]
+            while(len(color) < 6):
+                color = "0" + color
+            scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, c="#" + color, alpha=0.2, label=label)
+            scatterPlots.append(scatterPlot)
+
         # Add received flight paths to plot
         # first identify number of planes
-
         for gs in self.groundstations:
             lons, lats, icaos = zip(*gs.receivedPositions)
             icaoset = set(icaos)
@@ -101,8 +103,10 @@ class Simulation:
                         lonsnew += (element[0],)
                         latsnew += (element[1],)
                 label = "Received Flightpaths of " + icao + " in " + gs.name
-                color = int(icao, 16) + int(gs.name.lower(), 36)
-                scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, marker=',', c="#" + hex(color)[2:8], label=label)
+                color = hex(int(icao, 16) + int(gs.name.lower(), 36))[2:8]
+                while(len(color) < 6):
+                    color = "0" + color
+                scatterPlot = ax.scatter(lonsnew, latsnew, s=1.0, marker=',', c="#" + color, label=label)
                 scatterPlots.append(scatterPlot)
 
         # Add groundstations to plot
