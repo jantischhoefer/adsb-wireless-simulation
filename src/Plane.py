@@ -46,7 +46,7 @@ class Plane:
                 #print("Plane transmit:", x, element.id)
                 transmission.append(x)
 
-        transmission.append(Transmission.Transmission(data, self.id, commSat.id))
+        transmission.append(Transmission.Transmission(data, self.id, commSat.id, SNRdB=15, carrier_freq=1090000000))
 
         return transmission
 
