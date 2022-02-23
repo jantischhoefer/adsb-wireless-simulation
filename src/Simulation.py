@@ -8,22 +8,14 @@ import Plane
 
 class Simulation:
 
-    def __init__(self, timeStep):
+    def __init__(self):
         self.realFlightpaths = []
-        self.satPath = []
-        self.timeStep = timeStep
-        self.groundstations = []
-        self.planes = []
+        self.timeStep = Parameters.sim_timestep
+        self.groundstations = Parameters.groundstations
+        self.planes = Parameters.planes
 
     def run(self):
 
-        hanoiAirport = Groundstation.Groundstation("Hanoi_ID", (105.808817, 21.028511), "Hanoi")
-        saigonAirport = Groundstation.Groundstation("Saigon_ID", (106.660172, 10.762622), "HCMC")
-        self.groundstations = [hanoiAirport, saigonAirport]
-
-        plane1 = Plane.Plane("Plane_ID", waypoints=[(102.593618, 18.02), (100.593618, 13.741252),  (106.660172, 10.762622)])
-        plane2 = Plane.Plane("Plane_ID_2", waypoints=[(108.3, 20.3), (109.670204, 18.427483), (108.9, 15.6), (106.660172, 10.762622)])
-        self.planes = [plane1, plane2]
         commSat = CommSat.CommSat()
 
         allPlanesArrived = False
@@ -48,7 +40,7 @@ class Simulation:
                     # not all planes arrived yet
                     allPlanesArrived = False
 
-            # Satellite transmits to all groundstations
+            # Satellite transmits to all groundstations - this happens with a delay of one timestep
             transmission += commSat.transmit(
                 self.groundstations)  # Transmission[commSat.data, groundstations, from]
 
@@ -60,7 +52,7 @@ class Simulation:
                 gs.receive(transmission)  # data.mod, data.noise, data.demod ... -> return pos
 
             timePassed += self.timeStep
-        print("Total time passed (min): ", timePassed / 60.0)
+        print("Total time passed in Simulation (min): ", timePassed / 60.0)
         for gs in self.groundstations:
             gs.printCorruptedMessageRate()
 
@@ -142,6 +134,6 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    simulation = Simulation(Parameters.sim_timestep)  # 5 seconds
+    simulation = Simulation()
     simulation.run()
     simulation.plot()

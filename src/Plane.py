@@ -10,10 +10,12 @@ import Transmission
 class Plane:
     # id: aircraft id, position: lon-lat, height: [m], speed: [m/s], waypoints: lon-lat 
     def __init__(self, id, position=(105.808817, 21.028511), height=1000, speed=250,
-                 waypoints=[(106.660172, 10.762622)], callSign="PHVHAP"):
+                 waypoints=[(106.660172, 10.762622)], callSign="KLM123"):
         self.id = id
         self.ICAO = hex(random.randint(1, 16777214))[2:]  # create random ICAO address up to FFFFFF
         self.callSign = callSign
+        if(len(self.callSign) > 8):
+            self.callSign = self.callSign[0:8]
         self.position = position
         self.height = height
         self.speed = speed
